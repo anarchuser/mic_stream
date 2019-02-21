@@ -9,27 +9,34 @@ import 'package:flutter/services.dart';
 /* Class handling the microphone */
 class Microphone implements StreamController {
   static const _platform = const MethodChannel('mic_stream');
-  final StreamController<Uint8Buffer> _controller;
+  StreamController<Uint8Buffer> _controller;
   DateTime _timestamp;
+  Stream<Uint8Buffer> _stream;
 
   // Implemented Constructors
-  Microphone() : _controller = new StreamController();
-  Microphone.broadcast() : _controller = new StreamController.broadcast();
+  Microphone() {
+    _controller = new StreamController();
+    _stream = _controller.stream;
+  }
+  Microphone.broadcast() {
+    _controller = new StreamController.broadcast();
+    _stream = _controller.stream;
+  }
 
   // Implemented methods:
   close() => _controller.close();
   noSuchMethod(Invocation invocation) => _controller.noSuchMethod(invocation);
   toString() => _controller.toString();
 
-  Stream<Uint8Buffer> start() {
+  Future<Stream<Uint8Buffer>> start() async {
     _timestamp = new DateTime.now();
-    //TODO: Start Microphone here
-    // => _controller.stream.add("Mic-input")
+    _controller.addStream(await _platform.invokeMethod('play'));
+    return _stream;
   }
 
   void pause() {
     try {
-      //TODO: Pause Microphone here
+      _platform.invokeMethod('pause');
     }
     finally {
       //TODO: Do something fancy here
@@ -50,6 +57,10 @@ class Microphone implements StreamController {
   Duration stop() {
     //TODO: Stop Microphone here
     return duration();
+  }
+
+  static Future<String> getPlatformVersion() async {
+    return await _platform.invokeMethod('getPlatformVersion');
   }
 
   Duration duration() {
