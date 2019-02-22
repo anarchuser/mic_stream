@@ -1,6 +1,11 @@
 package com.code.aaron.micstream;
 
+import android.media.AudioFormat;
+
 import java.util.stream.*;
+import java.io.ByteArrayInputStream;
+
+import javax.sound.sampled.*;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -18,6 +23,8 @@ public class MicStreamPlugin implements MethodCallHandler {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "mic_stream");
         channel.setMethodCallHandler(new MicStreamPlugin());
     }
+
+    AudioFormat test;
 
     /** Variables **/
     private Stream<Byte> audioStream;

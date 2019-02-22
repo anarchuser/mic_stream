@@ -11,16 +11,13 @@ class Microphone implements StreamController {
   static const _platform = const MethodChannel('mic_stream');
   StreamController<Uint8Buffer> _controller;
   DateTime _timestamp;
-  Stream<Uint8Buffer> _stream;
 
   // Implemented Constructors
   Microphone() {
     _controller = new StreamController();
-    _stream = _controller.stream;
   }
   Microphone.broadcast() {
     _controller = new StreamController.broadcast();
-    _stream = _controller.stream;
   }
 
   // Implemented methods:
@@ -28,10 +25,16 @@ class Microphone implements StreamController {
   noSuchMethod(Invocation invocation) => _controller.noSuchMethod(invocation);
   toString() => _controller.toString();
 
-  Future<Stream<Uint8Buffer>> start() async {
-    _timestamp = new DateTime.now();
-    _controller.addStream(await _platform.invokeMethod('play'));
-    return _stream;
+  Stream<Uint8Buffer> start() {
+    try {
+      _timestamp = new DateTime.now();
+      _controller.addStream(
+          new Stream<Uint8Buffer>.fromFuture(_platform.invokeMethod('play')));
+    }
+    finally {
+      //TODO: Do something fancy here
+    }
+    return _controller.stream;
   }
 
   void pause() {
@@ -40,22 +43,27 @@ class Microphone implements StreamController {
     }
     finally {
       //TODO: Do something fancy here
-      return;
     }
   }
 
-  void resume() {
+  Stream<Uint8Buffer> resume() {
     try {
-      //TODO: Resume Microphone here
+      _controller.addStream(new Stream<Uint8Buffer>.fromFuture(_platform.invokeMethod('resume')));
     }
     finally {
       //TODO: Do something fancy here
-      return;
     }
+    return _controller.stream;
   }
 
   Duration stop() {
-    //TODO: Stop Microphone here
+    try {
+      _platform.invokeMethod('stop');
+      _controller.close();
+    }
+    finally {
+      //TODO: Do something fancy here
+    }
     return duration();
   }
 
@@ -64,12 +72,7 @@ class Microphone implements StreamController {
   }
 
   Duration duration() {
-    try {
-      return _timestamp.difference(DateTime.now());
-    }
-    finally {
-      return new Duration();
-    }
+    return _timestamp.difference(DateTime.now());
   }
 
 }
