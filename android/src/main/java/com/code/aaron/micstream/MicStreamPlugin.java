@@ -1,11 +1,14 @@
 package com.code.aaron.micstream;
 
-import android.media.AudioFormat;
 
 import java.util.stream.*;
 import java.io.ByteArrayInputStream;
 
-import javax.sound.sampled.*;
+import android.media.
+import android.media.
+import android.media.
+import android.media.
+import android.media.
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
