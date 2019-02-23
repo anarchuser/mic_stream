@@ -52,7 +52,10 @@ class Microphone implements StreamController {
     print("    Testing...");
     while(isRecording) {
       print("    ...test...");
-      _controller.add(await _platform.invokeMethod('getByteArray'));
+      try {
+        _controller.add(await _platform.invokeMethod('getByteArray'));
+      }
+      finally {}
     }
   }
 
