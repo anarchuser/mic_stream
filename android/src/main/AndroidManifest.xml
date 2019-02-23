@@ -1,3 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.code.aaron.micstream">
+    package="com.code.aaron.micstream">
+    <uses-sdk android:minSdkVersion="16"/>
 </manifest>
