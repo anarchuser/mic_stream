@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:typed_data/typed_data.dart';
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:mic_stream/mic_stream.dart';
@@ -19,23 +20,30 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     initPlatformState();
+
+    print("==== Start Test ====");
+    testMicStream();
+  }
+
+  Future<void> testMicStream() async {
+    print("Initialize new microphone");
+    Microphone microphone = new Microphone();
+
+    print("Start Streaming from the microphone:");
+    Stream<Uint8List> stream = await microphone.start();
+
+    print("Start Listening to the microphone:");
+    StreamSubscription<Uint8List> listener = stream.listen((samples) => print(samples.toString));
+
+    print("Stop Streaming from the microphone:");
+    microphone.stop();
+    microphone.close();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-
-    StreamController streamer = new Microphone();
-    Microphone broadcaster = new Microphone.broadcast();
-    streamer.stream;
-    streamer.start();
-    streamer.close();
-
-    Stream<Uint8Buffer> stream = broadcaster.start();
-    broadcaster.pause();
-    broadcaster.resume();
-    broadcaster.stop();
-
-    String _platformVersion = await Microphone.platformVersion;
+    _platformVersion = await Microphone.platformVersion;
+    setState(() {});
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
