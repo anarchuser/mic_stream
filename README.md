@@ -37,7 +37,7 @@ microphone.stop();
 ## Flutter
 
 About Flutter Plugins:
-[plug-in package](https://flutter.io/developing-packages/)
+https://flutter.io/developing-packages/
 
 Flutter Documentation:
-[online documentation](https://flutter.io/docs)
+https://flutter.io/docs
