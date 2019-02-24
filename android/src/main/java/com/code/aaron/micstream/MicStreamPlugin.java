@@ -1,5 +1,6 @@
 package com.code.aaron.micstream;
 
+import android.icu.text.IDNA;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -34,7 +35,6 @@ public class MicStreamPlugin implements MethodCallHandler {
         switch (call.method) {
             case "initRecorder":
                 recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNELS, AUDIO_FORMAT, BUFFER_SIZE);
-                result.success("Success");
                 break;
 
             case "getPlatformVersion":
@@ -51,19 +51,19 @@ public class MicStreamPlugin implements MethodCallHandler {
                 break;
 
             case "setSampleRate":
-                SAMPLE_RATE = call.argument("sampleRate");
+                int newSampleRate = call.argument("sampleRate");
+                if (newSampleRate <= 0 || newSampleRate > 16000) result.error("-1", "Value out of bounds", null);
                 BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNELS, AUDIO_FORMAT);
-                result.success("Success");
                 break;
 
             case "releaseRecorder":
                 recorder.release();
                 recorder = null;
-                result.success("Success");
                 break;
 
             default:
                 result.notImplemented();
         }
+        result.success("Success");
     }
 }
