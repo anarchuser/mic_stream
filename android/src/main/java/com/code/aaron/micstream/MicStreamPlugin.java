@@ -51,8 +51,7 @@ public class MicStreamPlugin implements MethodCallHandler {
                 break;
 
             case "setSampleRate":
-                int newSampleRate = call.argument("sampleRate");
-                if (newSampleRate <= 0 || newSampleRate > 16000) result.error("-1", "Value out of bounds", null);
+                SAMPLE_RATE = call.argument("sampleRate");
                 BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNELS, AUDIO_FORMAT);
                 break;
 

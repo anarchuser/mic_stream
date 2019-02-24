@@ -23,17 +23,24 @@ class Microphone implements StreamController {
   toString() => _controller.toString();
 
   // Starts and returns an audio stream from the microphone, which is given back as Uint8List; each element has the length of .bufferSize
+  // Throws an ArgumentError if Sample Rate is not between 1 and 16000
   Future<Stream<Uint8List>> start({int sampleRate = DEFAULT_SAMPLE_RATE}) async {
     if (!_isRecording) {
       _isRecording = true;
+
       print("  Init timestamp");
       _timestamp = new DateTime.now();
+
       print("  Set sample rate");
+      if (sampleRate <= 0 || sampleRate > 16000) throw(ArgumentError);
       await _platform.invokeMethod('setSampleRate', <String, int>{'sampleRate': sampleRate});
+
       print("  Init Audio Recorder");
       await _platform.invokeMethod('initRecorder');
+
       print("  Update buffer size");
       _bufferSize = await bufferSize;
+
       print("  Start recording:");
       _run();
     }
