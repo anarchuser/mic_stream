@@ -15,6 +15,12 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
+  Microphone microphone;
+  Stream<Uint8List> stream;
+  StreamSubscription<Uint8List> listener;
+  Icon _icon = Icon(Icons.keyboard_voice);
+  Color _iconColor = Colors.white;
+  Color _bgColor = Colors.cyan;
 
   @override
   void initState() {
@@ -22,22 +28,39 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
 
     print("==== Start Test ====");
-    testMicStream();
+
+    print("Initialize new microphone");
+    microphone = new Microphone();
+
   }
 
-  Future<void> testMicStream() async {
-    print("Initialize new microphone");
-    Microphone microphone = new Microphone();
+  void controlMicStream() async {
 
-    print("Start Streaming from the microphone:");
-    Stream<Uint8List> stream = await microphone.start();
+    if (!microphone.isRecording) {
+      setState(() {
+        _bgColor = Colors.red;
+        _icon = Icon(Icons.stop);
+      });
 
-    print("Start Listening to the microphone:");
-    StreamSubscription<Uint8List> listener = stream.listen((samples) => print(samples.toString));
+      print("Start Streaming from the microphone:");
+      stream = await microphone.start();
 
-    print("Stop Streaming from the microphone:");
-    microphone.stop();
-    microphone.close();
+      print("Start Listening to the microphone");
+      listener = stream.listen((samples) => print(samples));
+    }
+    else {
+      setState(() {
+        _bgColor = Colors.cyan;
+        _icon = Icon(Icons.keyboard_voice);
+      });
+
+      print("Stop Listening to the microphone");
+      listener.cancel();
+
+      print("Stop Streaming from the microphone");
+      microphone.stop();
+      microphone.close();
+    }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -54,12 +77,19 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.dark(),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Plugin: mic_stream :: Debug'),
         ),
         body: Center(
           child: Text('Running on: $_platformVersion\n'),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: (){controlMicStream();},
+          child: _icon,
+          foregroundColor: _iconColor,
+          backgroundColor: _bgColor,
         ),
       ),
     );

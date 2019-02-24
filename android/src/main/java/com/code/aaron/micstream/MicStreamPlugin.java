@@ -4,6 +4,7 @@ import android.icu.text.IDNA;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.os.Build;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -38,17 +39,18 @@ public class MicStreamPlugin implements MethodCallHandler {
                 break;
 
             case "getPlatformVersion":
-                result.success("Android $android.os.Build.VERSION.RELEASE");
-                break;
+                result.success("Android " + android.os.Build.VERSION.RELEASE);
+                return;
 
             case "getBufferSize":
                 result.success(BUFFER_SIZE);
+                return;
 
             case "getByteArray":
                 byte data[] = new byte[BUFFER_SIZE];
                 recorder.read(data, 0, BUFFER_SIZE);
                 result.success(data);
-                break;
+                return;
 
             case "setSampleRate":
                 SAMPLE_RATE = call.argument("sampleRate");
@@ -62,6 +64,7 @@ public class MicStreamPlugin implements MethodCallHandler {
 
             default:
                 result.notImplemented();
+                return;
         }
         result.success("Success");
     }

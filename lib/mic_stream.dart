@@ -9,6 +9,7 @@ class Microphone implements StreamController {
   static const _platform = const MethodChannel('mic_stream');
   static const DEFAULT_SAMPLE_RATE = 16000;
   bool _isRecording = false;
+  bool _isRunning;
   int _bufferSize;
   StreamController<Uint8List> _controller;
   DateTime _timestamp;
@@ -32,7 +33,6 @@ class Microphone implements StreamController {
       _timestamp = new DateTime.now();
 
       print("  Set sample rate");
-      if (sampleRate <= 0 || sampleRate > 16000) throw(ArgumentError);
       await _platform.invokeMethod('setSampleRate', <String, int>{'sampleRate': sampleRate});
 
       print("  Init Audio Recorder");
@@ -49,6 +49,7 @@ class Microphone implements StreamController {
 
   Duration stop() {
     _isRecording = false;
+    while (_isRunning) continue;
     _platform.invokeMethod('releaseRecorder');
     _controller.close();
     return duration;
@@ -56,18 +57,22 @@ class Microphone implements StreamController {
 
   // runs asynchronously in a loop and stores data to the stream
   void _run() async {
+
     print("    Testing...");
+    _isRunning = true;
     while(isRecording) {
+
       print("    ...test...");
       try {
         _controller.add(await _platform.invokeMethod('getByteArray'));
-      }
-      finally {}
+      } finally {}
     }
+    _isRunning = false;
   }
 
   // Changes the sample rate (only necessary for changing while recording - might cause unintended behaviour)
   set sampleRate(int sampleRate) {
+    if (sampleRate <= 0 || sampleRate > 16000) throw(ArgumentError);
     _platform.invokeMethod('setSampleRate', <String, int>{'sampleRate': sampleRate});
   }
 
@@ -78,8 +83,7 @@ class Microphone implements StreamController {
 
   // Returns the amount of bytes per element (the length of one Uint8List)
   Future<int> get bufferSize async {
-    _bufferSize = await _platform.invokeMethod('getBufferSize');
-    return _bufferSize;
+    return await _platform.invokeMethod('getBufferSize');
   }
 
 
