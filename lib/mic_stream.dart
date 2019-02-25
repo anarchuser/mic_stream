@@ -102,6 +102,8 @@ class Microphone implements StreamController {
     return await _platform.invokeMethod('getBufferSize');
   }
 
+  Stream<Uint8List> get stream => _controller.stream;
+
   // Returns the platform version
   static Future<String> get platformVersion async {
     return await _platform.invokeMethod('getPlatformVersion');

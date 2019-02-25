@@ -1,8 +1,8 @@
 name: mic_stream
-description: Provides a tool to get the microphone input as Byte Stream
+description: Provides a tool to get the microphone input as Byte Array Stream
 version: 0.0.1
-author:
-homepage:
+author: Aaron Alef <aaron.alef@code.berlin>
+homepage: https://github.com/anarchuser
 
 environment:
   sdk: ">=2.0.0-dev.68.0 <3.0.0"
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  simple_permissions: '0.1.9'
+  simple_permissions: '^0.1.9'
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
