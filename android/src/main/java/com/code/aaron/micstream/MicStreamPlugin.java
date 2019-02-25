@@ -1,5 +1,6 @@
 package com.code.aaron.micstream;
 
+import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -59,8 +60,8 @@ public class MicStreamPlugin implements MethodCallHandler {
                 break;
 
             case "releaseRecorder":
+                recorder.stop();
                 recorder.release();
-                recorder = null;
                 break;
 
             default:
