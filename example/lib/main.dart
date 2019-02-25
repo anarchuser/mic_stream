@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
-import 'package:simple_permissions/simple_permissions.dart';
 import 'package:mic_stream/mic_stream.dart';
 
 void main() => runApp(MyApp());
@@ -30,7 +29,6 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
 
     print("==== Start Test ====");
-
 
     print("Initialize new microphone");
     microphone = new Microphone();
@@ -70,8 +68,8 @@ class _MyAppState extends State<MyApp> {
 
   void _updateButton() {
     setState(() {
-      _bgColor = (microphone.isRecording) ? Colors.cyan : Colors.red;
-      _icon = (microphone.isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
+      _bgColor = (!microphone.isRecording) ? Colors.cyan : Colors.red;
+      _icon = (!microphone.isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
     });
   }
 

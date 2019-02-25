@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:developer';
 
-import 'package:permission_handler/permission_handler.dart';
+import 'package:simple_permissions/simple_permissions.dart';
 
 import 'package:flutter/services.dart';
 
@@ -35,7 +34,7 @@ class Microphone implements StreamController {
       _isRecording = true;
 
       print("Ask for permission to record audio...");
-      await PermissionHandler().requestPermissions([PermissionGroup.microphone]);
+      await SimplePermissions.requestPermission(Permission.RecordAudio);
 
       print("mic_stream: Set timestamp");
       _timestamp = new DateTime.now();

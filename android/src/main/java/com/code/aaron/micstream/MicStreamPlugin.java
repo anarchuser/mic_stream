@@ -1,10 +1,8 @@
 package com.code.aaron.micstream;
 
-import android.icu.text.IDNA;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.os.Build;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -28,15 +26,16 @@ public class MicStreamPlugin implements MethodCallHandler {
     /** Variables **/
     private AudioRecord recorder;
     private int CHANNELS = AudioFormat.CHANNEL_CONFIGURATION_MONO;
-    private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+    private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
     private int SAMPLE_RATE;
     private int BUFFER_SIZE;
 
     public void onMethodCall(MethodCall call, Result result) {
         switch (call.method) {
             case "initRecorder":
-                recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNELS, AUDIO_FORMAT, BUFFER_SIZE);
+                recorder = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, SAMPLE_RATE, CHANNELS, AUDIO_FORMAT, BUFFER_SIZE);
                 if (recorder.getState() == AudioRecord.STATE_UNINITIALIZED) result.error("-2", "Failed to initialize recorder", null);
+                recorder.startRecording();
                 break;
 
             case "getPlatformVersion":
