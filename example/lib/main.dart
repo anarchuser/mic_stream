@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
+import 'package:simple_permissions/simple_permissions.dart';
 import 'package:mic_stream/mic_stream.dart';
 
 void main() => runApp(MyApp());
@@ -21,6 +22,7 @@ class _MyAppState extends State<MyApp> {
   Icon _icon = Icon(Icons.keyboard_voice);
   Color _iconColor = Colors.white;
   Color _bgColor = Colors.cyan;
+  bool isRecording = false;
 
   @override
   void initState() {
@@ -28,6 +30,7 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
 
     print("==== Start Test ====");
+
 
     print("Initialize new microphone");
     microphone = new Microphone();
@@ -37,30 +40,39 @@ class _MyAppState extends State<MyApp> {
   void controlMicStream() async {
 
     if (!microphone.isRecording) {
-      setState(() {
-        _bgColor = Colors.red;
-        _icon = Icon(Icons.stop);
-      });
 
-      print("Start Streaming from the microphone:");
-      stream = await microphone.start();
+      print("Start Streaming from the microphone...");
+      try {
+        stream = await microphone.start();
+        _updateButton();
+      }
+      catch(StateError) {
+        print("Failed to start microphone!");
+        return;
+      }
+
+      isRecording = true;
 
       print("Start Listening to the microphone");
       listener = stream.listen((samples) => print(samples));
     }
     else {
-      setState(() {
-        _bgColor = Colors.cyan;
-        _icon = Icon(Icons.keyboard_voice);
-      });
-
       print("Stop Listening to the microphone");
       listener.cancel();
 
+      _updateButton();
+
       print("Stop Streaming from the microphone");
       microphone.stop();
-      microphone.close();
+      //microphone.close();   // Should be unnecessary
     }
+  }
+
+  void _updateButton() {
+    setState(() {
+      _bgColor = (microphone.isRecording) ? Colors.cyan : Colors.red;
+      _icon = (microphone.isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
+    });
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

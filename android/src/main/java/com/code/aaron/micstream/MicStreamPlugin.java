@@ -36,6 +36,7 @@ public class MicStreamPlugin implements MethodCallHandler {
         switch (call.method) {
             case "initRecorder":
                 recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNELS, AUDIO_FORMAT, BUFFER_SIZE);
+                if (recorder.getState() == AudioRecord.STATE_UNINITIALIZED) result.error("-2", "Failed to initialize recorder", null);
                 break;
 
             case "getPlatformVersion":
@@ -55,6 +56,7 @@ public class MicStreamPlugin implements MethodCallHandler {
             case "setSampleRate":
                 SAMPLE_RATE = call.argument("sampleRate");
                 BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNELS, AUDIO_FORMAT);
+                if (BUFFER_SIZE == AudioRecord.ERROR_BAD_VALUE) result.error("-1", "Bad buffer size value - try a different sample rate", null);
                 break;
 
             case "releaseRecorder":

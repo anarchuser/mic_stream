@@ -2,12 +2,17 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:developer';
 
+import 'package:permission_handler/permission_handler.dart';
+
 import 'package:flutter/services.dart';
 
 /* Class handling the microphone */
 class Microphone implements StreamController {
   static const _platform = const MethodChannel('mic_stream');
   static const DEFAULT_SAMPLE_RATE = 16000;
+  static const MIN_SAMPLE_RATE = 1;
+  static const MAX_SAMPLE_RATE = 16000;
+
   bool _isRecording = false;
   bool _isRunning;
   int _bufferSize;
@@ -29,22 +34,35 @@ class Microphone implements StreamController {
     if (!_isRecording) {
       _isRecording = true;
 
-      print("  Init timestamp");
+      print("Ask for permission to record audio...");
+      await PermissionHandler().requestPermissions([PermissionGroup.microphone]);
+
+      print("mic_stream: Set timestamp");
       _timestamp = new DateTime.now();
 
-      print("  Set sample rate");
+      print("mic_stream: Set sample rate");
       await _platform.invokeMethod('setSampleRate', <String, int>{'sampleRate': sampleRate});
 
-      print("  Init Audio Recorder");
-      await _platform.invokeMethod('initRecorder');
+      print("mic_stream: Init Audio Recorder");
+      try {
+        await _platform.invokeMethod('initRecorder');
+      }
+      catch (PlatformException) {
+        print("mic_stream: IOERROR - Could not initialize audio recorder");
+        throw(StateError);
+      }
 
-      print("  Update buffer size");
+      print("mic_stream: Update buffer size");
       _bufferSize = await bufferSize;
 
-      print("  Start recording:");
+      print("mic_stream: Start recording:");
       _run();
+
+      return _controller.stream;
     }
-    return _controller.stream;
+    else {
+      throw("mic_stream: INITERROR - Microphone is already running!");
+    }
   }
 
   Duration stop() {
@@ -58,21 +76,20 @@ class Microphone implements StreamController {
   // runs asynchronously in a loop and stores data to the stream
   void _run() async {
 
-    print("    Testing...");
+    print("mic_stream: Writing Bytes to buffer...");
     _isRunning = true;
     while(isRecording) {
-
-      print("    ...test...");
       try {
         _controller.add(await _platform.invokeMethod('getByteArray'));
       } finally {}
     }
+    print("mic_stream: Stop writing Bytes");
     _isRunning = false;
   }
 
   // Changes the sample rate (only necessary for changing while recording - might cause unintended behaviour)
   set sampleRate(int sampleRate) {
-    if (sampleRate <= 0 || sampleRate > 16000) throw(ArgumentError);
+    if (sampleRate < MIN_SAMPLE_RATE || sampleRate > MAX_SAMPLE_RATE) throw(RangeError.range(sampleRate, MIN_SAMPLE_RATE, MAX_SAMPLE_RATE));
     _platform.invokeMethod('setSampleRate', <String, int>{'sampleRate': sampleRate});
   }
 
@@ -85,7 +102,6 @@ class Microphone implements StreamController {
   Future<int> get bufferSize async {
     return await _platform.invokeMethod('getBufferSize');
   }
-
 
   // Returns the platform version
   static Future<String> get platformVersion async {
