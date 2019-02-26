@@ -1,6 +1,6 @@
 name: mic_stream
 description: Provides a tool to get the microphone input as Byte Array Stream
-version: 0.0.1
+version: 0.0.2
 author: Aaron Alef <aaron.alef@code.berlin>
 homepage: https://github.com/anarchuser
 

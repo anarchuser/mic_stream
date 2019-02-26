@@ -7,15 +7,16 @@ import 'package:flutter/services.dart';
 
 /* Class handling the microphone */
 class Microphone implements StreamController {
+  StreamController<Uint8List> _controller;  // Internal implemented Controller
+
   static const _platform = const MethodChannel('mic_stream');
   static const DEFAULT_SAMPLE_RATE = 16000;
   static const MIN_SAMPLE_RATE = 1;
   static const MAX_SAMPLE_RATE = 16000;
 
   bool _isRecording = false;
-  bool _isRunning;
+  bool _isRunning = false;
   int _bufferSize;
-  StreamController<Uint8List> _controller;
   DateTime _timestamp;
 
   // Implemented Constructors
@@ -64,6 +65,17 @@ class Microphone implements StreamController {
     }
   }
 
+  void pause() {
+    _isRecording = false;
+    print("mic_stream: Pause recording");
+  }
+
+  void resume() {
+    _isRecording = true;
+    print("mic_Stream: Resume recording");
+    _run();
+  }
+
   Duration stop() {
     _isRecording = false;
     while (_isRunning) continue;
@@ -77,7 +89,7 @@ class Microphone implements StreamController {
 
     print("mic_stream: Writing Bytes to buffer...");
     _isRunning = true;
-    while(isRecording) {
+    while(_isRecording) {
       try {
         _controller.add(await _platform.invokeMethod('getByteArray'));
       } finally {}

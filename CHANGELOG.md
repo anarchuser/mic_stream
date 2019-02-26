@@ -15,3 +15,8 @@ Constructor takes the Sample Rate as optional argument.
 * sampleRate:       Setter to manually update the sample rate (use with caution, though)
 * close:            Closes the internal StreamController
 * toString:         Pass-through to internal StreamController
+
+
+## 0.0.2
+
++ Getter for internal stream: microphone.stream
