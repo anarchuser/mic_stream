@@ -10,9 +10,9 @@ class Microphone implements StreamController {
   StreamController<Uint8List> _controller;  // Internal implemented Controller
 
   static const _platform = const MethodChannel('mic_stream');
-  static const DEFAULT_SAMPLE_RATE = 16000;
+  static const DEFAULT_SAMPLE_RATE = 32000;
   static const MIN_SAMPLE_RATE = 1;
-  static const MAX_SAMPLE_RATE = 16000;
+  static const MAX_SAMPLE_RATE = 48000;
 
   bool _isRecording = false;
   bool _isRunning = false;
