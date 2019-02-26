@@ -66,14 +66,24 @@ class Microphone implements StreamController {
   }
 
   void pause() {
-    _isRecording = false;
-    print("mic_stream: Pause recording");
+    if (_isRecording) {
+      _isRecording = false;
+      print("mic_stream: Pause recording");
+    }
+    else {
+      print("mic_stream: Already paused");
+    }
   }
 
   void resume() {
-    _isRecording = true;
-    print("mic_Stream: Resume recording");
-    _run();
+    if (!_isRecording) {
+      _isRecording = true;
+      print("mic_stream: Resume recording");
+      _run();
+    }
+    else {
+      print("mic_stream: Already recording");
+    }
   }
 
   Duration stop() {

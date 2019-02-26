@@ -20,3 +20,9 @@ Constructor takes the Sample Rate as optional argument.
 ## 0.0.2
 
 + Getter for internal stream: microphone.stream
+
+
+## 0.0.3
+
++ pause:            Pauses writing data to the stream
++ resume:           Resumes a paused stream
