@@ -26,3 +26,13 @@ Constructor takes the Sample Rate as optional argument.
 
 + pause:            Pauses writing data to the stream
 + resume:           Resumes a paused stream
+
+
+## 0.0.4
+
+* Changed Values for default and maximum sample rate (to 32 kHZ and 48 kHZ, respectively)
+
+
+## 0.0.5
+
++ Setter for microphone (audioSource, sampleRate, channelConfig, audioFormat)

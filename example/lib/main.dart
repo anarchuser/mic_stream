@@ -39,7 +39,8 @@ class _MyAppState extends State<MyApp> {
 
       print("Start Streaming from the microphone...");
       try {
-        stream = await microphone.start();
+        // Start the microphone adapted for speech recognition (audioSource) with a sample rate of 48 kHz
+        stream = await microphone.start(audioSource: 6, sampleRate: 48000);
         _updateButton();
       }
       catch(StateError) {

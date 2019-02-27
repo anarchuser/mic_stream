@@ -26,15 +26,19 @@ public class MicStreamPlugin implements MethodCallHandler {
 
     /** Variables **/
     private AudioRecord recorder;
-    private int CHANNELS = AudioFormat.CHANNEL_CONFIGURATION_MONO;
-    private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
+    private int AUDIO_SOURCE;
+    private int CHANNEL_CONFIG;
+    private int AUDIO_FORMAT;
     private int SAMPLE_RATE;
     private int BUFFER_SIZE;
 
     public void onMethodCall(MethodCall call, Result result) {
         switch (call.method) {
             case "initRecorder":
-                recorder = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, SAMPLE_RATE, CHANNELS, AUDIO_FORMAT, BUFFER_SIZE);
+                BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+                if (BUFFER_SIZE == AudioRecord.ERROR_BAD_VALUE) result.error("-1", "Bad buffer size value", null);
+
+                recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
                 if (recorder.getState() == AudioRecord.STATE_UNINITIALIZED) result.error("-2", "Failed to initialize recorder", null);
                 recorder.startRecording();
                 break;
@@ -55,8 +59,18 @@ public class MicStreamPlugin implements MethodCallHandler {
 
             case "setSampleRate":
                 SAMPLE_RATE = call.argument("sampleRate");
-                BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNELS, AUDIO_FORMAT);
-                if (BUFFER_SIZE == AudioRecord.ERROR_BAD_VALUE) result.error("-1", "Bad buffer size value - try a different sample rate", null);
+                break;
+
+            case "setAudioSource":
+                AUDIO_SOURCE = call.argument("audioSource");
+                break;
+
+            case "setChannelConfig":
+                CHANNEL_CONFIG = call.argument("channelConfig");
+                break;
+
+            case "setAudioFormat":
+                AUDIO_FORMAT = call.argument("audioFormat");
                 break;
 
             case "releaseRecorder":
