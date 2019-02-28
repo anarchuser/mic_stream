@@ -7,6 +7,13 @@ Provides a tool to get the microphone input as Byte Stream (Stream<Uint8List>)
 
 As Flutter still lacks some functionality, this plugin aims to provide the possibility to easily get an audio stream from the microphone, using a simple java implementation [=> Android only, iOS Support planned in the future].
 
+
+## !Important!
+
+Returns a stream of Uint8List objects, where each List contains 0.01s of sample data (look at the length, each byte in it is one sample).
+A future release will allow to dynamically set the amount of bytes per element in the stream
+
+
 ## Example
 
 /** Instantiate a 'Microphone' object inheriting the 'StreamController' class: */
