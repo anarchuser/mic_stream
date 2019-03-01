@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
       print("Start Streaming from the microphone...");
       try {
         // Start the microphone adapted for speech recognition (audioSource) with a sample rate of 48 kHz
-        stream = await microphone.start(audioSource: 6, sampleRate: 48000);
+        stream = microphone.start(audioSource: 6, sampleRate: 48000);
         _updateButton();
       }
       catch(StateError) {
@@ -60,15 +60,14 @@ class _MyAppState extends State<MyApp> {
       _updateButton();
 
       print("Stop Streaming from the microphone");
-      microphone.stop();
-      //microphone.close();   // Should be unnecessary
+      print(microphone.stop());
     }
   }
 
   void _updateButton() {
     setState(() {
-      _bgColor = (!microphone.isRecording) ? Colors.cyan : Colors.red;
-      _icon = (!microphone.isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
+      _bgColor = (microphone.isRecording) ? Colors.cyan : Colors.red;
+      _icon = (microphone.isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
     });
   }
 
