@@ -26,7 +26,7 @@ Microphone broadcast = new Microphone.broadcast();
 
 // Instantiate a Java AudioRecord object and start recording with an optional sampling rate as argument:
 
-microphone.start();                           // Default: 16000
+microphone.start();                           // Default: 32000
 
 microphone.start(samplerate = 8000);
 
