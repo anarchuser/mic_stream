@@ -111,7 +111,7 @@ class Microphone implements StreamController {
     }
   }
 
-  DateTime reset() {
+  DateTime _reset() {
     pause();
     DateTime old = _timestamp;
     _timestamp = DateTime.now();
@@ -119,7 +119,7 @@ class Microphone implements StreamController {
     return old;
   }
 
-  Duration _stop() {
+  Duration stop() {
     _isRunning = false;
     _isRecording = false;
     return duration;
