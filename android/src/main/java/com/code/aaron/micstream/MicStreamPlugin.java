@@ -12,7 +12,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** MicStreamPlugin
- *  In reference to from https://stackoverflow.com/questions/33403656/stream-microphone-to-speakers-android
+ *  In reference to https://stackoverflow.com/questions/33403656/stream-microphone-to-speakers-android
  */
 public class MicStreamPlugin implements MethodCallHandler {
 
