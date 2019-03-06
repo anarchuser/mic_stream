@@ -36,3 +36,21 @@ Constructor takes the Sample Rate as optional argument.
 ## 0.0.5
 
 + Setter for microphone (audioSource, sampleRate, channelConfig, audioFormat)
+
+
+## 0.0.6
+
+* Smaller changes
+
+
+## 0.0.7
+
+* Fixed crucial bug from 0.0.6
+
+
+# 0.0.8
+
+- Calculations of durations, as multi-threading currently makes it not working. Will be included in future releases
+
++ Some unit tests (Will be extended in the future to fully ensure the plugin's working)
+
