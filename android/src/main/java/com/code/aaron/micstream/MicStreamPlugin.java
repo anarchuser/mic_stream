@@ -3,7 +3,6 @@ package com.code.aaron.micstream;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.MediaRecorder;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;

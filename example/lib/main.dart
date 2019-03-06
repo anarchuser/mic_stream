@@ -26,7 +26,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     initPlatformState();
 
-    print("==== Start Test ====");
+    print("==== Start Example ====");
 
     print("Initialize new microphone");
     microphone = new Microphone();

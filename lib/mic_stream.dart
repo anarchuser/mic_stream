@@ -46,11 +46,12 @@ class Microphone implements StreamController {
       _isRecording = true;
       _isRunning = true;
 
-      print("Ask for permission to record audio...");
-      await SimplePermissions.requestPermission(Permission.RecordAudio);
-
       print("mic_stream: Set timestamp");
       _timestamp = new DateTime.now();
+      print(_timestamp);
+
+      print("mic_stream: Ask for permission to record audio...");
+      await SimplePermissions.requestPermission(Permission.RecordAudio);
 
       print("mic_stream: Set audio source");
       setAudioSource(audioSource);
@@ -77,10 +78,9 @@ class Microphone implements StreamController {
       }
 
       print("mic_stream: Start writing bytes to buffer");
-      Duration _sleep = new Duration(milliseconds: 1);
+      //Duration _sleep = new Duration(milliseconds: 1);
       while(_isRunning) {
         if (_isRecording) yield await _platform.invokeMethod('getByteArray');
-        //sleep(_sleep);
       }
 
       _platform.invokeMethod('releaseRecorder');
@@ -119,38 +119,26 @@ class Microphone implements StreamController {
     return old;
   }
 
-  Duration stop() {
+  void stop() {
     _isRunning = false;
     _isRecording = false;
-    return duration;
+    //return duration;
   }
 
-  // Changes the sample rate (only necessary for changing while recording - might cause unintended behaviour)
-  void setSampleRate(int sampleRate) {
+  // Getters
+  Future<int> get bufferSize async => await _platform.invokeMethod('getBufferSize');
+  //Duration get duration => -_timestamp.difference(new DateTime.now());
+  bool get isRecording => _isRecording;
+  static Future<String> get platformVersion async => await _platform.invokeMethod('getPlatformVersion');
+  Stream<Uint8List> get stream => _controller.stream;
+
+  // Setters
+  setAudioSource (int audioSource) => _platform.invokeMethod('setAudioSource', <String, int>{'audioSource': audioSource});
+  setChannelConfig (int channelConfig) => _platform.invokeMethod('setChannelConfig', <String, int>{'channelConfig': channelConfig});
+  setAudioFormat (int audioFormat) => _platform.invokeMethod('setAudioFormat', <String, int>{'audioFormat': audioFormat});
+  setSampleRate(int sampleRate) {
     if (sampleRate < MIN_SAMPLE_RATE || sampleRate > MAX_SAMPLE_RATE) throw(RangeError.range(sampleRate, MIN_SAMPLE_RATE, MAX_SAMPLE_RATE));
     _platform.invokeMethod('setSampleRate', <String, int>{'sampleRate': sampleRate});
   }
 
-  void setAudioSource (int audioSource) => _platform.invokeMethod('setAudioSource', <String, int>{'audioSource': audioSource});
-
-  void setChannelConfig (int channelConfig) => _platform.invokeMethod('setChannelConfig', <String, int>{'channelConfig': channelConfig});
-
-  void setAudioFormat (int audioFormat) => _platform.invokeMethod('setAudioFormat', <String, int>{'audioFormat': audioFormat});
-
-  bool get isRecording => _isRecording;
-
-  // Returns the duration since first start
-  Duration get duration => -_timestamp.difference(DateTime.now());
-
-  // Returns the amount of bytes per element (the length of one Uint8List)
-  Future<int> get bufferSize async {
-    return await _platform.invokeMethod('getBufferSize');
-  }
-
-  Stream<Uint8List> get stream => _controller.stream;
-
-  // Returns the platform version
-  static Future<String> get platformVersion async {
-    return await _platform.invokeMethod('getPlatformVersion');
-  }
 }
