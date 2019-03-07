@@ -60,7 +60,7 @@ class _MyAppState extends State<MyApp> {
       _updateButton();
 
       print("Stop Streaming from the microphone");
-      print(microphone.stop());
+      microphone.stop();
     }
   }
 
