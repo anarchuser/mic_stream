@@ -1,4 +1,4 @@
-package com.code.aaron.mic_stream;
+package com.code.aaron.micstream;
 
 import java.util.ArrayList;
 
