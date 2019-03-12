@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:mic_stream/mic_stream.dart';
 
@@ -29,7 +28,7 @@ class _MyAppState extends State<MyApp> {
 
   void controlMicStream() async {
 
-    if (isRecording) {
+    if (!isRecording) {
 
       print("Start Streaming from the microphone...");
       stream = microphone(audioSource: 6, sampleRate: 48000);
