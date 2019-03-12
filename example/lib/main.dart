@@ -12,10 +12,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  Microphone microphone;
-  Stream<Uint8List> stream;
-  StreamSubscription<Uint8List> listener;
+  Stream<List<int>> stream;
+  StreamSubscription<List<int>> listener;
   Icon _icon = Icon(Icons.keyboard_voice);
   Color _iconColor = Colors.white;
   Color _bgColor = Colors.cyan;
@@ -27,26 +25,15 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
 
     print("==== Start Example ====");
-
-    print("Initialize new microphone");
-    microphone = new Microphone();
-
   }
 
   void controlMicStream() async {
 
-    if (!microphone.isRecording) {
+    if (isRecording) {
 
       print("Start Streaming from the microphone...");
-      try {
-        // Start the microphone adapted for speech recognition (audioSource) with a sample rate of 48 kHz
-        stream = microphone.start(audioSource: 6, sampleRate: 48000);
-        _updateButton();
-      }
-      catch(StateError) {
-        print("Failed to start microphone!");
-        return;
-      }
+      stream = microphone(audioSource: 6, sampleRate: 48000);
+      _updateButton();
 
       isRecording = true;
 
@@ -58,16 +45,13 @@ class _MyAppState extends State<MyApp> {
       listener.cancel();
 
       _updateButton();
-
-      print("Stop Streaming from the microphone");
-      microphone.stop();
     }
   }
 
   void _updateButton() {
     setState(() {
-      _bgColor = (microphone.isRecording) ? Colors.cyan : Colors.red;
-      _icon = (microphone.isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
+      _bgColor = (isRecording) ? Colors.cyan : Colors.red;
+      _icon = (isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
     });
   }
 
@@ -89,9 +73,6 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Plugin: mic_stream :: Debug'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: (){controlMicStream();},
