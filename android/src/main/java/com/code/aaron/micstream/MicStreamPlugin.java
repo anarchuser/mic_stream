@@ -1,6 +1,9 @@
 package com.code.aaron.micstream;
 
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.annotation.TargetApi;
@@ -41,6 +44,8 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
 
     // Runnable management
+    public volatile boolean recording = false;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler();
     private final Runnable runnable = new Runnable() {
         @Override
@@ -84,12 +89,14 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         recorder.startRecording();
 
         // Start runnable
-        runnable.run();
+        //runnable.run();
+        executor.execute(runnable);
     }
 
     @Override
     public void onCancel(Object o) {
         // Stop runnable
+        executor.shutdown();
         handler.removeCallbacks(runnable);
 
         // Reset audio recorder
