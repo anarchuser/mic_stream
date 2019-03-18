@@ -23,12 +23,12 @@ Future<bool> get permissionStatus async {
   return (_permission.permissionStatus == PermissionStatus.allow);
 }
 
-Stream<List<int>> microphone({int audioSource: DEFAULT_AUDIO_SOURCE, int sampleRate: DEFAULT_SAMPLE_RATE, int channelConfig: DEFAULT_CHANNELS_CONFIG, int audioFormat: DEFAULT_AUDIO_FORMAT}) async* {
+dynamic microphone({int audioSource: DEFAULT_AUDIO_SOURCE, int sampleRate: DEFAULT_SAMPLE_RATE, int channelConfig: DEFAULT_CHANNELS_CONFIG, int audioFormat: DEFAULT_AUDIO_FORMAT}) async* {
   if (!(await permissionStatus)) throw (PlatformException);
   if (_microphone == null) _microphone = _microphoneEventChannel
-      .receiveBroadcastStream([audioSource, sampleRate, channelConfig, audioFormat])
-      .map((samples) => new List(samples));
+      .receiveBroadcastStream([audioSource, sampleRate, channelConfig, audioFormat]);
   print(_microphone);
+  yield* _microphone;
   _convert(_microphone);
 }
 
