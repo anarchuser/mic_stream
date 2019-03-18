@@ -11,8 +11,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Stream<List<int>> stream;
-  StreamSubscription<List<int>> listener;
+  //Stream<List<int>> stream;
+  //StreamSubscription<List<int>> listener;
+
+  var stream;
+  var listener;
+
   Icon _icon = Icon(Icons.keyboard_voice);
   Color _iconColor = Colors.white;
   Color _bgColor = Colors.cyan;
@@ -37,7 +41,7 @@ class _MyAppState extends State<MyApp> {
       isRecording = true;
 
       print("Start Listening to the microphone");
-      listener = stream.listen((samples) => print(samples));
+      listener = stream.listen((samples) => samples);
     }
     else {
       print("Stop Listening to the microphone");

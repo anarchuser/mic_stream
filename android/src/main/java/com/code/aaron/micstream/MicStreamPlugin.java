@@ -1,7 +1,9 @@
 package com.code.aaron.micstream;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import android.annotation.TargetApi;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -11,8 +13,11 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** MicStreamPlugin
- *  In reference to flutter sensors plugin
+ *  In reference to flutters official sensors plugin
+ *  and the example of the streams_channel (v0.2.2) plugin
  */
+
+@TargetApi(16)  // Should be unnecessary, but isn't // fix build.gradle...?
 public class MicStreamPlugin implements EventChannel.StreamHandler {
     private static final String MICROPHONE_CHANNEL_NAME = "aaron.code.com/mic_stream";
 
@@ -24,28 +29,34 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         microphone.setStreamHandler(new MicStreamPlugin());
     }
 
-    private final Handler handler = new Handler();
-    private final Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            isRunning = true;
-            while(isRunning) {
-                short[] data = new short[BUFFER_SIZE];
-                recorder.read(data, 0, BUFFER_SIZE);
-                eventSink.success(data);
-            }
-        }
-    };
+    private EventChannel.EventSink eventSink;
 
-    private boolean isRunning = false;
+    // Audio recorder + initial values
+    private static AudioRecord recorder;
+
     private int AUDIO_SOURCE = MediaRecorder.AudioSource.DEFAULT;
     private int SAMPLE_RATE = 16000;
     private int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
     private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
 
-    private EventChannel.EventSink eventSink;
-    private AudioRecord recorder;
+    // Runnable management
+    private final Handler handler = new Handler();
+    private final Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            short[] data = new short[BUFFER_SIZE];
+            recorder.read(data, 0, BUFFER_SIZE);
+
+            System.out.print(data.toString() + " == " + data.hashCode() + ": ");
+            for (short s: data) System.out.print(s + "  ");
+            System.out.println();
+
+            //eventSink.success(data);
+            if (recorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) handler.postDelayed(this, 1);
+        }
+    };
+
 
     @Override
     public void onListen(Object args, final EventChannel.EventSink eventSink) {
@@ -66,19 +77,26 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         }
 
         this.eventSink = eventSink;
+
+        // Try to initialize and start the recorder
         recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
         if (recorder.getState() != AudioRecord.STATE_INITIALIZED) eventSink.error("-1", "PlatformError", null);
         recorder.startRecording();
-        if (recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) eventSink.error("-2", "PlatformError", null);
+
+        // Start runnable
         runnable.run();
     }
 
     @Override
     public void onCancel(Object o) {
-        isRunning = false;
-        eventSink.endOfStream();
+        // Stop runnable
         handler.removeCallbacks(runnable);
+
+        // Reset audio recorder
         recorder.release();
         recorder = null;
+
+        // End stream
+        eventSink.endOfStream();
     }
 }
