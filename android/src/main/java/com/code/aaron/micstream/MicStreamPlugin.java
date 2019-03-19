@@ -32,7 +32,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     private EventChannel.EventSink eventSink;
 
     // Audio recorder + initial values
-    public static volatile AudioRecord recorder;
+    private static volatile AudioRecord recorder;
 
     private int AUDIO_SOURCE = MediaRecorder.AudioSource.DEFAULT;
     private int SAMPLE_RATE = 16000;
@@ -48,22 +48,17 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         public void run() {
             isRecording = true;
             while (record) {
-
+                // Read audio data into new short array
                 short[] data = new short[BUFFER_SIZE];
-                int result = recorder.read(data, 0, BUFFER_SIZE);
-                System.out.println(result);
+                recorder.read(data, 0, BUFFER_SIZE);
 
-                System.out.print(data.toString() + ": ");
-                for (short s: data) System.out.print(s + "  ");
-                System.out.println();
-
-                //eventSink.success(data);
+                // push data into stream
+                eventSink.success(data);
             }
             isRecording = false;
         }
     };
 
-    private static Thread thread;
     @Override
     public void onListen(Object args, final EventChannel.EventSink eventSink) {
         if (isRecording) return;
@@ -93,8 +88,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
 
         // Start runnable
         record = true;
-        thread = new Thread(runnable);
-        thread.start();
+        new Thread(runnable).start();
     }
 
     @Override
