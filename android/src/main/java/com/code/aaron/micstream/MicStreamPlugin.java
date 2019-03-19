@@ -1,8 +1,6 @@
 package com.code.aaron.micstream;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import android.annotation.TargetApi;
 import android.media.AudioFormat;
@@ -43,6 +41,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     // Runnable management
     private volatile boolean record = false;
     private volatile boolean isRecording = false;
+
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -96,7 +95,8 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         // Stop runnable
         record = false;
 
-        // Reset audio recorder
+        // Stop and reset audio recorder
+        recorder.stop();
         recorder.release();
         recorder = null;
     }
