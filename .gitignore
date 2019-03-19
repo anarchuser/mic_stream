@@ -9,5 +9,6 @@ pubspec.lock
 build/
 
 .idea/*
+.idea/workspace.xml
 
 mic_stream.iml
