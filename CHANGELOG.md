@@ -67,3 +67,6 @@ The stream starts upon onListen() and runs until onCancel()
 
 
 # 0.1.1
+
++ Added customisability for the recorder
++ Added some error handling of the input params
