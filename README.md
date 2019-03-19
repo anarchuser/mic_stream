@@ -27,6 +27,7 @@ StreamSubscription<Uint8List> listener = stream.listen((samples) => print(sample
 
 // Cancel the subscription
 listener.cancel()
+```
 
 ## Flutter
 
