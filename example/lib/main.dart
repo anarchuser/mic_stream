@@ -35,13 +35,14 @@ class _MyAppState extends State<MyApp> {
     if (!isRecording) {
 
       print("Start Streaming from the microphone...");
-      stream = microphone(audioSource: 6, sampleRate: 48000);
+      stream = microphone(audioSource: 6, sampleRate: 8000);
       _updateButton();
 
       isRecording = true;
 
       print("Start Listening to the microphone");
-      listener = stream.listen((samples) => samples);
+      //listener = stream.listen((samples) => samples);
+      listener = stream.listen((samples) => print(samples));
     }
     else {
       print("Stop Listening to the microphone");
