@@ -46,19 +46,19 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     // Runnable management
     public volatile boolean recording = false;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final Handler handler = new Handler();
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            short[] data = new short[BUFFER_SIZE];
-            recorder.read(data, 0, BUFFER_SIZE);
+            while (recording) {
+                short[] data = new short[BUFFER_SIZE];
+                recorder.read(data, 0, BUFFER_SIZE);
 
-            System.out.print(data.toString() + " == " + data.hashCode() + ": ");
-            for (short s: data) System.out.print(s + "  ");
-            System.out.println();
+                System.out.print(data.toString() + " == " + data.hashCode() + ": ");
+                for (short s: data) System.out.print(s + "  ");
+                System.out.println();
 
-            //eventSink.success(data);
-            if (recorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) handler.postDelayed(this, 1);
+                //eventSink.success(data);
+            }
         }
     };
 
@@ -89,15 +89,14 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         recorder.startRecording();
 
         // Start runnable
-        //runnable.run();
-        executor.execute(runnable);
+        recording = true;
+        runnable.run();
     }
 
     @Override
     public void onCancel(Object o) {
         // Stop runnable
-        executor.shutdown();
-        handler.removeCallbacks(runnable);
+        recording = false;
 
         // Reset audio recorder
         recorder.release();
