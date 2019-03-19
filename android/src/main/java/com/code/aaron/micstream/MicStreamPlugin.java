@@ -1,5 +1,6 @@
 package com.code.aaron.micstream;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import android.annotation.TargetApi;
