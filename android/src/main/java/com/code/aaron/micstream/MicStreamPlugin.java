@@ -1,16 +1,13 @@
 package com.code.aaron.micstream;
 
 import java.util.ArrayList;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.annotation.TargetApi;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.os.Handler;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
@@ -35,7 +32,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     private EventChannel.EventSink eventSink;
 
     // Audio recorder + initial values
-    private static AudioRecord recorder;
+    public static volatile AudioRecord recorder;
 
     private int AUDIO_SOURCE = MediaRecorder.AudioSource.DEFAULT;
     private int SAMPLE_RATE = 16000;
@@ -44,27 +41,33 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
 
     // Runnable management
-    public volatile boolean recording = false;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private volatile boolean record = false;
+    private volatile boolean isRecording = false;
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            while (recording) {
-                short[] data = new short[BUFFER_SIZE];
-                recorder.read(data, 0, BUFFER_SIZE);
+            isRecording = true;
+            while (record) {
 
-                System.out.print(data.toString() + " == " + data.hashCode() + ": ");
+                short[] data = new short[BUFFER_SIZE];
+                int result = recorder.read(data, 0, BUFFER_SIZE);
+                System.out.println(result);
+
+                System.out.print(data.toString() + ": ");
                 for (short s: data) System.out.print(s + "  ");
                 System.out.println();
 
                 //eventSink.success(data);
             }
+            isRecording = false;
         }
     };
 
-
+    private static Thread thread;
     @Override
     public void onListen(Object args, final EventChannel.EventSink eventSink) {
+        if (isRecording) return;
+
         ArrayList<Integer> config = (ArrayList<Integer>) args;
 
         // Set parameters, if available
@@ -89,20 +92,18 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         recorder.startRecording();
 
         // Start runnable
-        recording = true;
-        runnable.run();
+        record = true;
+        thread = new Thread(runnable);
+        thread.start();
     }
 
     @Override
     public void onCancel(Object o) {
         // Stop runnable
-        recording = false;
+        record = false;
 
         // Reset audio recorder
         recorder.release();
         recorder = null;
-
-        // End stream
-        eventSink.endOfStream();
     }
 }
