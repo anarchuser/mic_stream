@@ -35,7 +35,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     private int AUDIO_SOURCE = MediaRecorder.AudioSource.DEFAULT;
     private int SAMPLE_RATE = 16000;
     private int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
-    private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+    private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
     private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
 
     // Runnable management
@@ -48,11 +48,15 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
             isRecording = true;
             while (record) {
                 // Read audio data into new short array
-                short[] data = new short[BUFFER_SIZE];
+                byte[] data = new byte[BUFFER_SIZE];
                 recorder.read(data, 0, BUFFER_SIZE);
 
                 // push data into stream
-                eventSink.success(data);
+                try {eventSink.success(data);}
+                catch (IllegalArgumentException e) {
+                    System.out.println("mic_stream: " + data.toString() + " is not valid!");
+                    break;
+                }
             }
             isRecording = false;
         }

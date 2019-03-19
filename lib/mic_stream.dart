@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 const int DEFAULT_AUDIO_SOURCE = 0;       // 'DEFAULT' source
 const int DEFAULT_SAMPLE_RATE = 16000;
 const int DEFAULT_CHANNELS_CONFIG = 16;   // MONO
-const int DEFAULT_AUDIO_FORMAT = 2;       // 16BIT PCM
+const int DEFAULT_AUDIO_FORMAT = 3;       // 8BIT PCM
 
 const EventChannel _microphoneEventChannel = EventChannel('aaron.code.com/mic_stream');
 
@@ -27,13 +27,5 @@ dynamic microphone({int audioSource: DEFAULT_AUDIO_SOURCE, int sampleRate: DEFAU
   if (!(await permissionStatus)) throw (PlatformException);
   if (_microphone == null) _microphone = _microphoneEventChannel
       .receiveBroadcastStream([audioSource, sampleRate, channelConfig, audioFormat]);
-  print(_microphone);
   yield* _microphone;
-  _convert(_microphone);
-}
-
-// Convert a stream of lists to a stream of ints
-void _convert(Stream audio) {
-  print(audio);
-  audio.listen((sample) => print(sample));
 }

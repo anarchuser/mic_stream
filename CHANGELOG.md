@@ -60,3 +60,6 @@ Constructor takes the Sample Rate as optional argument.
 
 > microphone({Options}) returns a Stream<List<int>>
 The stream starts upon onListen() and runs until onCancel()
+
+> listen to the stream to start recording
+> stop the subscription to stop
