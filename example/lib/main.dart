@@ -47,6 +47,9 @@ class _MyAppState extends State<MyApp> {
       print("Stop Listening to the microphone");
       listener.cancel();
 
+      isRecording = false;
+      print('Stopped listening to the microphone');
+
       _updateButton();
     }
   }
