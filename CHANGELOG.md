@@ -54,6 +54,7 @@ Constructor takes the Sample Rate as optional argument.
 
 + Some unit tests (Will be extended in the future to fully ensure the plugin's working)
 
+
 # 0.1.0
 
 * Rewritten Plugin to make use of EventChannel.StreamHandlers (Much nicer than before)
@@ -63,3 +64,6 @@ The stream starts upon onListen() and runs until onCancel()
 
 > listen to the stream to start recording
 > stop the subscription to stop
+
+
+# 0.1.1
