@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:mic_stream/mic_stream.dart';
 
@@ -12,10 +11,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  Microphone microphone;
-  Stream<Uint8List> stream;
-  StreamSubscription<Uint8List> listener;
+  //Stream<List<int>> stream;
+  //StreamSubscription<List<int>> listener;
+
+  var stream;
+  var listener;
+
   Icon _icon = Icon(Icons.keyboard_voice);
   Color _iconColor = Colors.white;
   Color _bgColor = Colors.cyan;
@@ -26,60 +27,44 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     initPlatformState();
 
-    print("==== Start Test ====");
-
-    print("Initialize new microphone");
-    microphone = new Microphone();
-
+    print("==== Start Example ====");
   }
 
   void controlMicStream() async {
 
-    if (!microphone.isRecording) {
+    if (!isRecording) {
 
       print("Start Streaming from the microphone...");
-      try {
-        // Start the microphone adapted for speech recognition (audioSource) with a sample rate of 48 kHz
-        stream = await microphone.start(audioSource: 6, sampleRate: 48000);
-        _updateButton();
-      }
-      catch(StateError) {
-        print("Failed to start microphone!");
-        return;
-      }
+      stream = microphone(audioSource: 6, sampleRate: 8000);
+      _updateButton();
 
       isRecording = true;
 
       print("Start Listening to the microphone");
+      //listener = stream.listen((samples) => samples);
       listener = stream.listen((samples) => print(samples));
     }
     else {
       print("Stop Listening to the microphone");
       listener.cancel();
 
-      _updateButton();
+      isRecording = false;
+      print('Stopped listening to the microphone');
 
-      print("Stop Streaming from the microphone");
-      microphone.stop();
-      //microphone.close();   // Should be unnecessary
+      _updateButton();
     }
   }
 
   void _updateButton() {
     setState(() {
-      _bgColor = (!microphone.isRecording) ? Colors.cyan : Colors.red;
-      _icon = (!microphone.isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
+      _bgColor = (isRecording) ? Colors.cyan : Colors.red;
+      _icon = (isRecording)  ? Icon(Icons.keyboard_voice) : Icon(Icons.stop);
     });
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    _platformVersion = await Microphone.platformVersion;
     setState(() {});
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
     if (!mounted) return;
   }
 
@@ -90,9 +75,6 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Plugin: mic_stream :: Debug'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: (){controlMicStream();},

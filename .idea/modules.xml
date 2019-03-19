@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/mic_stream.iml" filepath="$PROJECT_DIR$/mic_stream.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/mic_stream.iml" filepath="$PROJECT_DIR$/.idea/mic_stream.iml" />
     </modules>
   </component>
 </project>
