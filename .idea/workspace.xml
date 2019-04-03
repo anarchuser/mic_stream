@@ -43,12 +43,12 @@
         <counts>
           <entry key="bat" value="1" />
           <entry key="class" value="1" />
-          <entry key="dart" value="28" />
+          <entry key="dart" value="29" />
           <entry key="gitignore" value="3" />
           <entry key="gradle" value="22" />
           <entry key="gradlew" value="3" />
           <entry key="iml" value="1" />
-          <entry key="java" value="11" />
+          <entry key="java" value="12" />
           <entry key="md" value="1" />
           <entry key="metadata" value="1" />
           <entry key="packages" value="1" />
@@ -61,10 +61,10 @@
         <counts>
           <entry key="Bash" value="3" />
           <entry key="CLASS" value="1" />
-          <entry key="Dart" value="28" />
+          <entry key="Dart" value="29" />
           <entry key="Groovy" value="22" />
           <entry key="IDEA_MODULE" value="1" />
-          <entry key="JAVA" value="11" />
+          <entry key="JAVA" value="12" />
           <entry key="Markdown" value="1" />
           <entry key="PLAIN_TEXT" value="6" />
           <entry key="Properties" value="8" />
@@ -74,21 +74,21 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="dart" value="384" />
+          <entry key="dart" value="2937" />
           <entry key="gitignore" value="4" />
           <entry key="gradle" value="59" />
-          <entry key="java" value="4454" />
-          <entry key="md" value="251" />
+          <entry key="java" value="5253" />
+          <entry key="md" value="376" />
           <entry key="properties" value="7" />
           <entry key="xml" value="58" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Dart" value="384" />
+          <entry key="Dart" value="2937" />
           <entry key="Groovy" value="59" />
-          <entry key="JAVA" value="4454" />
-          <entry key="Markdown" value="251" />
+          <entry key="JAVA" value="5253" />
+          <entry key="Markdown" value="376" />
           <entry key="PLAIN_TEXT" value="4" />
           <entry key="Properties" value="7" />
           <entry key="XML" value="58" />
@@ -101,8 +101,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/mic_stream.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="29" selection-start-line="29" selection-end-line="29" />
+            <state relative-caret-position="291">
+              <caret line="36" column="47" selection-start-line="36" selection-start-column="47" selection-end-line="36" selection-end-column="47" />
               <folding>
                 <element signature="e#0#20#0" expanded="true" />
               </folding>
@@ -110,11 +110,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/android/src/main/java/com/code/aaron/micstream/MicStreamPlugin.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="401">
-              <caret line="37" column="56" selection-start-line="37" selection-start-column="56" selection-end-line="37" selection-end-column="56" />
+            <state relative-caret-position="42">
+              <caret line="75" column="39" selection-start-line="75" selection-start-column="39" selection-end-line="75" selection-end-column="39" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -122,11 +122,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/CHANGELOG.md">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="650">
+              <caret line="71" column="46" selection-start-line="71" selection-start-column="46" selection-end-line="71" selection-end-column="46" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/example/lib/main.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="46">
-              <caret line="37" column="54" selection-start-line="37" selection-start-column="54" selection-end-line="37" selection-end-column="54" />
+            <state relative-caret-position="-8">
+              <caret line="37" column="160" selection-start-line="37" selection-start-column="160" selection-end-line="37" selection-end-column="160" />
               <folding>
                 <element signature="e#0#39#0" expanded="true" />
               </folding>
@@ -150,7 +159,6 @@
         <option value="$PROJECT_DIR$/example/test/unit_test.dart" />
         <option value="$PROJECT_DIR$/test/mic_stream_test.dart" />
         <option value="$PROJECT_DIR$/example/android/app/src/main/AndroidManifest.xml" />
-        <option value="$PROJECT_DIR$/CHANGELOG.md" />
         <option value="$PROJECT_DIR$/example/android/app/build.gradle" />
         <option value="$PROJECT_DIR$/android/gradle.properties" />
         <option value="$PROJECT_DIR$/example/android/build.gradle" />
@@ -158,9 +166,10 @@
         <option value="$PROJECT_DIR$/android/build.gradle" />
         <option value="/opt/flutter/packages/flutter/lib/src/widgets/framework.dart" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/android/src/main/java/com/code/aaron/micstream/MicStreamPlugin.java" />
+        <option value="$PROJECT_DIR$/CHANGELOG.md" />
         <option value="$PROJECT_DIR$/lib/mic_stream.dart" />
         <option value="$PROJECT_DIR$/example/lib/main.dart" />
+        <option value="$PROJECT_DIR$/android/src/main/java/com/code/aaron/micstream/MicStreamPlugin.java" />
       </list>
     </option>
   </component>
@@ -295,17 +304,6 @@
               <item name="java" type="9f88c78c:ScopeViewTreeModel$FileNode" />
               <item name="com.code.aaron.micstream" type="9f88c78c:ScopeViewTreeModel$FileNode" />
             </path>
-            <path>
-              <item name="mic_stream" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-              <item name="example" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
-            <path>
-              <item name="mic_stream" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-              <item name="example" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-              <item name="android" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -386,11 +384,11 @@
       <window_info id="Favorites" order="6" side_tool="true" />
       <window_info id="Build Variants" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Dart Analysis" order="0" weight="0.32894737" />
-      <window_info active="true" anchor="bottom" id="Run" order="1" visible="true" weight="1.0" />
+      <window_info active="true" anchor="bottom" id="Run" order="1" sideWeight="0.4994664" visible="true" weight="1.0" />
       <window_info anchor="bottom" id="TODO" order="2" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.5353319" />
-      <window_info anchor="bottom" id="Terminal" order="4" weight="0.116702355" />
-      <window_info anchor="bottom" id="Event Log" order="5" side_tool="true" />
+      <window_info anchor="bottom" id="Terminal" order="4" weight="0.2537473" />
+      <window_info anchor="bottom" id="Event Log" order="5" sideWeight="0.50053364" side_tool="true" weight="0.6691649" />
       <window_info anchor="bottom" id="Flutter Performance" order="6" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Logcat" order="8" weight="0.89507496" />
@@ -434,13 +432,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/mic_stream.iml">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CHANGELOG.md">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="855">
-          <caret line="61" column="58" selection-start-line="61" selection-start-column="58" selection-end-line="61" selection-end-column="58" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/.packages">
       <provider selected="true" editor-type-id="text-editor" />
@@ -663,20 +654,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/android/src/main/java/com/code/aaron/micstream/MicStreamPlugin.java">
+    <entry file="file://$PROJECT_DIR$/example/test/integration_test.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="401">
-          <caret line="37" column="56" selection-start-line="37" selection-start-column="56" selection-end-line="37" selection-end-column="56" />
+        <state>
           <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="e#0#910#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CHANGELOG.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="650">
+          <caret line="71" column="46" selection-start-line="71" selection-start-column="46" selection-end-line="71" selection-end-column="46" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/mic_stream.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="29" selection-start-line="29" selection-end-line="29" />
+        <state relative-caret-position="291">
+          <caret line="36" column="47" selection-start-line="36" selection-start-column="47" selection-end-line="36" selection-end-column="47" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
           </folding>
@@ -685,10 +682,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/example/lib/main.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="46">
-          <caret line="37" column="54" selection-start-line="37" selection-start-column="54" selection-end-line="37" selection-end-column="54" />
+        <state relative-caret-position="-8">
+          <caret line="37" column="160" selection-start-line="37" selection-start-column="160" selection-end-line="37" selection-end-column="160" />
           <folding>
             <element signature="e#0#39#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/android/src/main/java/com/code/aaron/micstream/MicStreamPlugin.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="75" column="39" selection-start-line="75" selection-start-column="39" selection-end-line="75" selection-end-column="39" />
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>

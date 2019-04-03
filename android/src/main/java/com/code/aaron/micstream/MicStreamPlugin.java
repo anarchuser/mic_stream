@@ -1,5 +1,6 @@
 package com.code.aaron.micstream;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import android.annotation.TargetApi;
@@ -46,15 +47,52 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         @Override
         public void run() {
             isRecording = true;
-            while (record) {
-                // Read audio data into new short array
-                byte[] data = new byte[BUFFER_SIZE];
-                recorder.read(data, 0, BUFFER_SIZE);
 
-                // push data into stream
-                try {eventSink.success(data);}
-                catch (IllegalArgumentException e) {
-                    System.out.println("mic_stream: " + data.toString() + " is not valid!");
+            // Repeatedly push audio samples to stream
+            while (record) {
+
+                // 8 Bit encoding
+                if (AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) {
+
+                    // Read audio data into new byte array
+                    byte[] data = new byte[BUFFER_SIZE];
+                    recorder.read(data, 0, BUFFER_SIZE);
+
+                    // push data into stream
+                    try {
+                        eventSink.success(data);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("mic_stream: " + data.toString() + " is not valid!");
+                        break;
+                    }
+                }
+
+                // TODO: Fix this!
+                // 16 Bit encoding
+                else if (AUDIO_FORMAT == AudioFormat.ENCODING_PCM_16BIT) {
+
+                    // Read audio data into new short array
+                    short[] data_s = new short[BUFFER_SIZE];
+                    byte[] data_b = new byte[BUFFER_SIZE * 2];
+                    recorder.read(data_b, 0, BUFFER_SIZE);
+
+                    // Split short into two bytes
+
+                    for (int i = 0; i < BUFFER_SIZE; i++) {
+                        data_b[i * 2] = (byte) (data_s[i] >> 8);
+                        data_b[i * 2 + 1] = (byte) data_s[i];
+                    }
+
+                    // push data into stream
+                    try {
+                        eventSink.success(data_b);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("mic_stream: " + data_b.toString() + " is not valid!");
+                        eventSink.error("-2", "Invalid Data", null);
+                    }
+                }
+                else {
+                    eventSink.error("-3", "Invalid Audio Format specified", null);
                     break;
                 }
             }
