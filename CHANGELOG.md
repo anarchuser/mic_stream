@@ -48,25 +48,31 @@ Constructor takes the Sample Rate as optional argument.
 * Fixed crucial bug from 0.0.6
 
 
-# 0.0.8
+## 0.0.8
 
 - Calculations of durations, as multi-threading currently makes it not working. Will be included in future releases
 
 + Some unit tests (Will be extended in the future to fully ensure the plugin's working)
 
 
-# 0.1.0
+## 0.1.0
 
 * Rewritten Plugin to make use of EventChannel.StreamHandlers (Much nicer than before)
 
-> microphone({Options}) returns a Stream<List<int>>
-The stream starts upon onListen() and runs until onCancel()
+* microphone({Options}) returns a Stream<List<int>>
+  * The stream starts upon onListen() and runs until onCancel()
 
-> listen to the stream to start recording
-> stop the subscription to stop
+* listen to the stream to start recording
+* stop the subscription to stop
 
 
-# 0.1.1
+## 0.1.1
 
 + Added customisability for the recorder
 + Added some error handling of the input params
+
+
+## 0.1.2
+
++ Added 16Bit PCM mode
+
