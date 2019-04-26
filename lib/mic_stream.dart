@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 
 enum AudioSource {DEFAULT, MIC, VOICE_UPLINK, VOICE_DOWNLINK, VOICE_CALL, CAMCORDER, VOICE_RECOGNITION, VOICE_COMMUNICATION, REMOTE_SUBMIX, UNPROCESSED, VOICE_PERFORMANCE}
 enum ChannelConfig {CHANNEL_IN_MONO, CHANNEL_IN_STEREO}
-enum AudioFormat {ENCODING_PCM_8BIT/*, ENCODING_PCM_16BIT*/}
+enum AudioFormat {ENCODING_PCM_8BIT, ENCODING_PCM_16BIT}
 
 const AudioSource _DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
 const ChannelConfig _DEFAULT_CHANNELS_CONFIG = ChannelConfig.CHANNEL_IN_MONO;
@@ -35,26 +35,28 @@ Stream<dynamic> microphone({AudioSource audioSource: _DEFAULT_AUDIO_SOURCE, int 
   if (!(await permissionStatus)) throw (PlatformException);
   if (_microphone == null) _microphone = _microphoneEventChannel
       .receiveBroadcastStream([audioSource.index, sampleRate, channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12, audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2]);
-  yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT) ? _microphone : _squashBytes(_microphone);
+  yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT) ? _microphone : _squashStream(_microphone);
 }
 
-// TODO: Fix 16 Bit PCM
-// Currently not needed
-Stream<List<int>> _squashBytes(Stream audio) {
+Stream<List<int>> _squashStream(Stream audio) {
   return audio.map((samples) => _squashList(samples));
 }
 
 List<int> _squashList(List byteSamples) {
-  List<int> shortSamples;
+  List<int> shortSamples = List();
   bool isFirstElement = true;
   int sum = 0;
   for (var sample in byteSamples) {
-    sum += sample;
-    if (!isFirstElement) {
-      shortSamples.add(sum);
+    if (isFirstElement) {
+      sum += sample * 256;
+    }
+    else {
+      sum += sample;
+      shortSamples.add(sum - 32768);
       sum = 0;
     }
-    isFirstElement = isFirstElement == true;
+    isFirstElement = !isFirstElement;
   }
   return shortSamples;
 }
+
