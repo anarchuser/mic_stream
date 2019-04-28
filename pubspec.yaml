@@ -1,5 +1,5 @@
 name: mic_stream
-description: Provides a tool to get the microphone input as Byte Array Stream
+description: Provides a tool to get the microphone input as PCM Stream
 version: 0.1.3
 author: Aaron Alef <aaron.alef@code.berlin>
 homepage: https://github.com/anarchuser
