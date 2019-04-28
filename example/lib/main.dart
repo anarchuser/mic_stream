@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:mic_stream/mic_stream.dart';
 
@@ -35,7 +36,7 @@ class _MyAppState extends State<MyApp> {
     if (!isRecording) {
 
       print("Start Streaming from the microphone...");
-      stream = microphone(audioSource: AudioSource.MIC, sampleRate: 32000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_8BIT);
+      stream = microphone(audioSource: AudioSource.MIC, sampleRate: 16000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_16BIT);
       _updateButton();
 
       isRecording = true;
