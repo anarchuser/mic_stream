@@ -89,3 +89,6 @@ Constructor takes the Sample Rate as optional argument.
 * Fixed casting issue
 
 + Added Error handling for exceptions thrown on wrong AudioRecord params
+
+
+## 0.1.5
