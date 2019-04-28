@@ -1,7 +1,7 @@
 # mic_stream: ^0.1.3
 
 [Flutter Plugin]
-Provides a tool to get the microphone input as Byte Stream (Stream<List<int>>)
+Provides a tool to get the microphone input as PCM Stream (Stream<List<int>>)
 
 ## About mic_stream:
 
