@@ -84,7 +84,6 @@ Constructor takes the Sample Rate as optional argument.
 
 ## 0.1.4
 
-* Fixed casting issues requiring to use dynamic typing
+- Removed Debug output
 
-+ Added an error handling for the AudioRecord params
-
+* Fixed casting issue

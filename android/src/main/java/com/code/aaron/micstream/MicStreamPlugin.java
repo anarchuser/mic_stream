@@ -74,12 +74,9 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
                     byte[] data_b = new byte[BUFFER_SIZE * 2];
                     recorder.read(data_s, 0, BUFFER_SIZE);
 
-                    for (int i = 0; i < 10; i++) System.out.print(data_s[i] + ", ");
-                    System.out.println();
-
                     // Split short into two bytes
                     for (int i = 0; i < BUFFER_SIZE; i++) {
-                        data_s[i] += 32768;
+                        //data_s[i] += 32768;
                         data_b[2 * i] = (byte) Math.floor(data_s[i] / 256.0);
                         data_b[2*i+1] = (byte) (data_s[i] % 256);
                     }
@@ -89,7 +86,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
                         eventSink.success(data_b);
                     } catch (IllegalArgumentException e) {
                         System.out.println("mic_stream: " + data_b + " is not valid!");
-                        eventSink.error("-2", "Invalid Data", null);
+                        eventSink.error("-2", "Invalid Data", e);
                     }
                 }
                 else {
@@ -118,7 +115,11 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
             case 1:
                 AUDIO_SOURCE = config.get(0);
             default:
-                BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+                try {
+                    BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+                } catch (Exception e) {
+                    eventSink.error("-3", "Invalid AudioRecord parameters", e);
+                }
         }
 
         this.eventSink = eventSink;

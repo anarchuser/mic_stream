@@ -4,7 +4,7 @@ import 'package:permission/permission.dart';
 
 import 'package:flutter/services.dart';
 
-// Adapts the official sensors plugin
+// In reference to the implementation of the official sensors plugin
 // https://github.com/flutter/plugins/tree/master/packages/sensors
 
 enum AudioSource {DEFAULT, MIC, VOICE_UPLINK, VOICE_DOWNLINK, VOICE_CALL, CAMCORDER, VOICE_RECOGNITION, VOICE_COMMUNICATION, REMOTE_SUBMIX, UNPROCESSED, VOICE_PERFORMANCE}
@@ -30,19 +30,28 @@ Future<bool> get permissionStatus async {
   return (_permission.permissionStatus == PermissionStatus.allow);
 }
 
-Stream<dynamic> microphone({AudioSource audioSource: _DEFAULT_AUDIO_SOURCE, int sampleRate: _DEFAULT_SAMPLE_RATE, ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG, AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async* {
+Stream<List<int>> microphone({AudioSource audioSource: _DEFAULT_AUDIO_SOURCE, int sampleRate: _DEFAULT_SAMPLE_RATE, ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG, AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async* {
   if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE) throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
   if (!(await permissionStatus)) throw (PlatformException);
   if (_microphone == null) _microphone = _microphoneEventChannel
       .receiveBroadcastStream([audioSource.index, sampleRate, channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12, audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2]);
-  yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT) ? _microphone : _squashStream(_microphone);
+  yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT) ? _parseStream(_microphone) : _squashStream(_microphone);
+}
+
+Stream<List<int>> _parseStream(Stream audio) {
+  return audio.map(_parseList);
+}
+
+List<int> _parseList(var samples) {
+  List<int> sampleList = samples;
+  return sampleList;
 }
 
 Stream<List<int>> _squashStream(Stream audio) {
-  return audio.map((samples) => _squashList(samples));
+  return audio.map(_squashList);
 }
 
-List<int> _squashList(List byteSamples) {
+List<int> _squashList(var byteSamples) {
   List<int> shortSamples = List();
   bool isFirstElement = true;
   int sum = 0;
@@ -59,4 +68,3 @@ List<int> _squashList(List byteSamples) {
   }
   return shortSamples;
 }
-

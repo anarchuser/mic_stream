@@ -1,4 +1,4 @@
-# mic_stream: ^0.1.3
+# mic_stream: ^0.1.4
 
 [Flutter Plugin]
 Provides a tool to get the microphone input as PCM Stream (Stream<List<int>>)

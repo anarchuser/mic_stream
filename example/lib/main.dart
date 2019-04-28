@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:mic_stream/mic_stream.dart';
 
@@ -12,11 +11,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  //Stream<List<int>> stream;
-  //StreamSubscription<List<int>> listener;
-
-  var stream;
-  var listener;
+  Stream<List<int>> stream;
+  StreamSubscription<List<int>> listener;
 
   Icon _icon = Icon(Icons.keyboard_voice);
   Color _iconColor = Colors.white;
@@ -36,7 +32,7 @@ class _MyAppState extends State<MyApp> {
     if (!isRecording) {
 
       print("Start Streaming from the microphone...");
-      stream = microphone(audioSource: AudioSource.MIC, sampleRate: 16000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_16BIT);
+      stream = microphone(audioSource: AudioSource.DEFAULT, sampleRate: 16000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_16BIT);
       _updateButton();
 
       isRecording = true;
