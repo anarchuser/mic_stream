@@ -76,3 +76,7 @@ Constructor takes the Sample Rate as optional argument.
 
 + Added 16Bit PCM mode
 
+
+## 0.1.3
+
+* Updated README.
