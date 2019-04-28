@@ -21,7 +21,9 @@ while cancelling the subscription stops the stream.
 ```
 // Init a new Stream
 Stream<List<int>> stream = microphone(sampleRate: 44100);
+```
 
+```
 // Start listening to the stream
 StreamSubscription<List<int>> listener = stream.listen((samples) => print(samples));
 ```
