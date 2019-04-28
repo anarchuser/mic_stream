@@ -1,7 +1,7 @@
-# mic_stream
+# mic_stream: ^0.1.3
 
 [Flutter Plugin]
-Provides a tool to get the microphone input as Byte Stream (Stream<Uint8List>)
+Provides a tool to get the microphone input as Byte Stream (Stream<List<int>>)
 
 ## About mic_stream:
 
@@ -11,7 +11,7 @@ As Flutter still lacks some functionality, this plugin aims to provide the possi
 
 The plugin provides one method:
 
-`Stream<Uint8List> microphone({options})`
+`Stream<List<int>> microphone({options})`
 
 Listening to this stream starts the audio recorder
 while cancelling the subscription stops the stream.
@@ -20,10 +20,10 @@ while cancelling the subscription stops the stream.
 
 ```
 // Init a new Stream
-Stream<Uint8List> stream = microphone(sampleRate: 44100);
+Stream<List<int>> stream = microphone(sampleRate: 44100);
 
 // Start listening to the stream
-StreamSubscription<Uint8List> listener = stream.listen((samples) => print(samples));
+StreamSubscription<List<int>> listener = stream.listen((samples) => print(samples));
 
 // Cancel the subscription
 listener.cancel()
