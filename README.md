@@ -9,6 +9,13 @@ As Flutter still lacks some functionality, this plugin aims to provide the possi
 
 ## How to use:
 
+### Permissions
+
+Make sure you have microphone recording permissions enabled for your project.
+To do so, add this line to the AndroidManifest.xml:
+
+`<uses-permission android:name="android.permission.RECORD_AUDIO"/>`
+
 The plugin provides one method:
 
 `Stream<List<int>> microphone({options})`
