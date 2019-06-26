@@ -2,6 +2,7 @@ package com.code.aaron.micstream;
 
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import android.annotation.TargetApi;
 import android.media.AudioFormat;
@@ -62,11 +63,12 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
                     try {
                         eventSink.success(data);
                     } catch (IllegalArgumentException e) {
-                        System.out.println("mic_stream: " + data.toString() + " is not valid!");
-                        break;
+                        System.out.println("mic_stream: " + Arrays.hashCode(data) + " is not valid!");
+                        eventSink.error("-1", "Invalid Data", e);
                     }
                 }
 
+                // 16 Bit encoding
                 else if (AUDIO_FORMAT == AudioFormat.ENCODING_PCM_16BIT) {
 
                     // Read audio data into new short array
@@ -85,7 +87,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
                     try {
                         eventSink.success(data_b);
                     } catch (IllegalArgumentException e) {
-                        System.out.println("mic_stream: " + data_b + " is not valid!");
+                        System.out.println("mic_stream: " + Arrays.hashCode(data_b) + " is not valid!");
                         eventSink.error("-2", "Invalid Data", e);
                     }
                 }
