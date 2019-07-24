@@ -108,12 +108,12 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     private static class MainThreadEventSink implements EventChannel.EventSink {
         private EventChannel.EventSink eventSink;
         private Handler handler;
-    
+
         MainThreadEventSink(EventChannel.EventSink eventSink) {
           this.eventSink = eventSink;
           handler = new Handler(Looper.getMainLooper());
         }
-    
+
         @Override
         public void success(final Object o) {
           handler.post(new Runnable() {
@@ -123,7 +123,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
             }
           });
         }
-    
+
         @Override
         public void error(final String s, final String s1, final Object o) {
           handler.post(new Runnable() {
@@ -133,7 +133,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
             }
           });
         }
-    
+
         @Override
         public void endOfStream() {
           handler.post(new Runnable() {
