@@ -12,7 +12,13 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 
 import 'package:mic_stream/mic_stream.dart';
 
+<<<<<<< HEAD
 
+||||||| merged common ancestors
+=======
+
+
+>>>>>>> Destructor now cancels mic stream
 void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
