@@ -78,6 +78,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
 
                     // Split short into two bytes
                     for (int i = 0; i < BUFFER_SIZE; i++) {
+
                         //data_s[i] += 32768;
                         data_b[2 * i] = (byte) Math.floor(data_s[i] / 256.0);
                         data_b[2*i+1] = (byte) (data_s[i] % 256);
