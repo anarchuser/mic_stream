@@ -13,7 +13,6 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:mic_stream/mic_stream.dart';
 
 
-
 void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
@@ -24,6 +23,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Stream<List<int>> stream;
   StreamSubscription<List<int>> listener;
+  List<int> currentSamples;
 
   Icon _icon = Icon(Icons.keyboard_voice);
   Color _iconColor = Colors.white;
@@ -33,7 +33,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    setState(() {
+      initPlatformState();
+    });
 
     print("==== Start Example ====");
   }
@@ -49,8 +51,11 @@ class _MyAppState extends State<MyApp> {
       isRecording = true;
 
       print("Start Listening to the microphone");
-      //listener = stream.listen((samples) => samples);
-      listener = stream.listen((samples) => print(samples));
+      listener = stream.listen((samples) {
+        setState(() {
+          currentSamples = samples;
+        });
+      });
     }
     else {
       print("Stop Listening to the microphone");
@@ -90,6 +95,9 @@ class _MyAppState extends State<MyApp> {
           foregroundColor: _iconColor,
           backgroundColor: _bgColor,
         ),
+        body: CustomPaint(
+          painter: WavePainter(currentSamples, _bgColor)
+        ),
       ),
     );
   }
@@ -99,4 +107,45 @@ class _MyAppState extends State<MyApp> {
     listener.cancel();
     super.dispose();
   }
+}
+
+class WavePainter extends CustomPainter {
+  List<int> samples;
+  Color color;
+
+  WavePainter(this.samples, this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Debug
+    print("Paint: " + samples.toString());
+
+    Paint paint = new Paint()
+        ..color = color
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke;
+
+    Path path = new Path();
+    path.addPolygon(toPoints(samples, size), false);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldPainting) => true;
+
+  // Maps a list of ints and their indices to a list of points on a cartesian grid
+  List<Offset> toPoints (List<int> samples, Size size) {
+    List<Offset> points = [];
+    int absMax = 0;
+    if (samples == null) samples = List<int>.filled(size.width.toInt(), 0);
+    else samples.forEach((sample) => absMax = max(absMax, sample.abs()));
+    for (num i = 0; i < min(size.width, samples.length); i++) {
+      points.add(new Offset(i, fit(samples[i], size.height)));
+    }
+    return points;
+  }
+
+  // Returns an integer fitting into the respective height
+  num fit(num value, num height) => value < 0 ? max(0.5 * value, height) : min(0.5 * value, height);
 }
