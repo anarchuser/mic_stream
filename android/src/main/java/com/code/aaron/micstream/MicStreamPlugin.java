@@ -103,6 +103,8 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
         }
     };
 
+    /// Bug fix by https://github.com/Lokhozt
+    /// following https://github.com/flutter/flutter/issues/34993
     private static class MainThreadEventSink implements EventChannel.EventSink {
         private EventChannel.EventSink eventSink;
         private Handler handler;
@@ -142,6 +144,7 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
           });
         }
     }
+    /// End
 
     @Override
     public void onListen(Object args, final EventChannel.EventSink eventSink) {
