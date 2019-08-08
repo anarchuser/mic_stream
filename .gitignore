@@ -9,11 +9,7 @@ pubspec.lock
 build/
 
 .idea/*
-<<<<<<< HEAD
 ./.idea/workspace.xml
-||||||| merged common ancestors
-=======
 .idea/workspace.xml
->>>>>>> d2de5de87d7d5894863912961a2c14d45a97eec6
 
 mic_stream.iml
