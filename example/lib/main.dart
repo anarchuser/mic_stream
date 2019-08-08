@@ -158,7 +158,9 @@ class WavePainter extends CustomPainter {
   }
 
   double project(int val, int max, double height) {
-    if (max == 0) return 0.5 * height;
-    return (val / max) * 0.5 * height;
+    double waveHeight;
+    if (max == 0) waveHeight = val.toDouble();
+    else waveHeight = (val / max) * 0.5 * height;
+    return waveHeight + 0.5 * height;
   }
 }
