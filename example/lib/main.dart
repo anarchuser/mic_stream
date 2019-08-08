@@ -1,17 +1,7 @@
+import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:math';
-import 'dart:ui' as ui;
-
-import 'package:flutter/material.dart';
-import 'package:vector_math/vector_math.dart' as Vector;
-import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter/animation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart' show timeDilation;
 
 import 'package:mic_stream/mic_stream.dart';
-
 
 void main() => runApp(MyApp());
 
@@ -32,9 +22,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    setState(() {
-      initPlatformState();
-    });
+    initPlatformState();
 
     print("==== Start Example ====");
   }
@@ -93,11 +81,5 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    listener.cancel();
-    super.dispose();
   }
 }
