@@ -93,6 +93,6 @@ Constructor takes the Sample Rate as optional argument.
 
 ## 0.1.5
 
-+ Fixed Issue #8, causing immediate crashes in the latest flutter update
+* Fixed Issue #8, causing immediate crashes in the latest flutter update
 
 ## 0.1.6
