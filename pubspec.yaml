@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  permission: '^0.1.1'
+  permission: '0.1.1'
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
