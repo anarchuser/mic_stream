@@ -1,6 +1,6 @@
 name: mic_stream
 description: Provides a tool to get the microphone input as PCM Stream [Android only]
-version: 0.1.6
+version: 0.2.0
 author: Aaron Alef <aaron.alef@code.berlin>
 homepage: https://github.com/anarchuser
 
