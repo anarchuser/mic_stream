@@ -61,7 +61,7 @@ List<int> _squashList(var byteSamples) {
     }
     else {
       sum += sample;
-      shortSamples.add(sum - 32768);
+      shortSamples.add(sum - 32767);
       sum = 0;
     }
     isFirstElement = !isFirstElement;

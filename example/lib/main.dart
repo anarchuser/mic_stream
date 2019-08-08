@@ -116,10 +116,13 @@ class WavePainter extends CustomPainter {
   BuildContext context;
   Size size;
 
+  static int absMax = 0;
+
   WavePainter(this.samples, this.color, this.context);
 
   @override
   void paint(Canvas canvas, Size size) {
+
     this.size = context.size;
     size = this.size;
 
@@ -129,10 +132,13 @@ class WavePainter extends CustomPainter {
         ..style = PaintingStyle.stroke;
 
     points = toPoints(samples);
-    print(points);
+    //print(points);
+    //print(size.height);
+    print(absMax);
+    //print(samples);
 
     Path path = new Path();
-    path.addPolygon(toPoints(samples), false);
+    path.addPolygon(points, false);
 
     canvas.drawPath(path, paint);
   }
@@ -143,8 +149,7 @@ class WavePainter extends CustomPainter {
   // Maps a list of ints and their indices to a list of points on a cartesian grid
   List<Offset> toPoints (List<int> samples) {
     List<Offset> points = [];
-    int absMax = 0;
-    if (samples == null) samples = List<int>.filled(size.width.toInt(), 0);
+    if (samples == null) samples = List<int>.filled(size.width.toInt(), (0.5 * size.height).toInt());
     else samples.forEach((sample) => absMax = max(absMax, sample.abs()));
     for (int i = 0; i < min(size.width, samples.length).toInt(); i++) {
       points.add(new Offset(i.toDouble(), project(samples[i], absMax, size.height)));
@@ -154,6 +159,6 @@ class WavePainter extends CustomPainter {
 
   double project(int val, int max, double height) {
     if (max == 0) return 0.5 * height;
-    return (val / max) * 0.5 * height + 0.5 * height;
+    return (val / max) * 0.5 * height;
   }
 }
