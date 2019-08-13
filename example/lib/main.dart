@@ -99,6 +99,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
     if (!mounted) return;
     isActive = true;
 
+    Statistics(false);
+
     controller = AnimationController(duration: Duration(seconds: 1), vsync: this)
       ..addListener(() {
         if (isRecording) setState(() {});
@@ -148,7 +150,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
           CustomPaint(
             painter: WavePainter(currentSamples, _getBgColor(), context),
           ) :
-          Diagnostics(isRecording, startTime: startTime,)
+          Statistics(isRecording, startTime: startTime,)
       ),
     );
   }
@@ -231,13 +233,13 @@ class WavePainter extends CustomPainter {
   }
 }
 
-class Diagnostics extends StatelessWidget {
+class Statistics extends StatelessWidget {
   final bool isRecording;
   final DateTime startTime;
 
   final String url = "https://github.com/anarchuser/mic_stream";
 
-  Diagnostics(this.isRecording, {this.startTime});
+  Statistics(this.isRecording, {this.startTime});
 
   @override
   Widget build(BuildContext context) {
