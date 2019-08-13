@@ -12,14 +12,14 @@ enum Command {
   change,
 }
 
-void main() => runApp(MyApp());
+void main() => runApp(MicStreamExampleApp());
 
-class MyApp extends StatefulWidget {
+class MicStreamExampleApp extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  _MicStreamExampleAppState createState() => _MicStreamExampleAppState();
 }
 
-class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   Stream<List<int>> stream;
   StreamSubscription<List<int>> listener;
   List<int> currentSamples;
