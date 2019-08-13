@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:mic_stream/mic_stream.dart';
 
-enum Cmd {
+enum Command {
   start,
   stop,
   change,
@@ -43,15 +43,15 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin, Widg
   }
 
   // Responsible for switching between recording / idle state
-  void _controlMicStream({Cmd cmd: Cmd.change}) async {
-    switch(cmd) {
-      case Cmd.change:
+  void _controlMicStream({Command command: Command.change}) async {
+    switch(command) {
+      case Command.change:
         _changeListening();
         break;
-      case Cmd.start:
+      case Command.start:
         _startListening();
         break;
-      case Cmd.stop:
+      case Command.stop:
         _stopListening();
         break;
     }
@@ -129,11 +129,11 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin, Widg
       isActive = true;
       print("Resume app");
 
-      _controlMicStream(cmd: memRecordingState ? Cmd.start : Cmd.stop);
+      _controlMicStream(command: memRecordingState ? Command.start : Command.stop);
     }
     else if (isActive){
       memRecordingState = isRecording;
-      _controlMicStream(cmd: Cmd.stop);
+      _controlMicStream(command: Command.stop);
 
       print("Pause app");
       isActive = false;
