@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:mic_stream/mic_stream.dart';
 
+enum Cmd {
+  start,
+  stop,
+  change,
+}
 
 void main() => runApp(MyApp());
 
@@ -15,59 +19,77 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
+class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   Stream<List<int>> stream;
   StreamSubscription<List<int>> listener;
   List<int> currentSamples;
 
-  AnimationController controller;   // Refreshes the Widget for every possible tick to force a rebuild of the sound wave
+  // Refreshes the Widget for every possible tick to force a rebuild of the sound wave
+  AnimationController controller;
 
   Color _iconColor = Colors.white;
   bool isRecording = false;
+  bool memRecordingState = false;
+  bool isActive;
 
   @override
   void initState() {
+    print("Init application");
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     setState(() {
       initPlatformState();
     });
-
-    print("==== Start Example ====");
   }
 
-  void _controlMicStream() async {
-
-    if (!isRecording) {
-
-      print("Start Streaming from the microphone...");
-      stream = microphone(audioSource: AudioSource.DEFAULT, sampleRate: 16000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_16BIT);
-
-      setState(() => isRecording = true);
-
-      print("Start Listening to the microphone");
-      listener = stream.listen((samples) => setState(() {
-        currentSamples = samples;
-      }));
+  // Responsible for switching between recording / idle state
+  void _controlMicStream({Cmd cmd: Cmd.change}) async {
+    switch(cmd) {
+      case Cmd.change:
+        _changeListening();
+        break;
+      case Cmd.start:
+        _startListening();
+        break;
+      case Cmd.stop:
+        _stopListening();
+        break;
     }
-    else {
-      print("Stop Listening to the microphone");
-      listener.cancel();
+  }
 
-      setState(() {
-        isRecording = false;
-        currentSamples = null;
-      });
-      print('Stopped listening to the microphone');
+  bool _changeListening() => !isRecording ? _startListening() : _stopListening();
 
-    }
+  bool _startListening() {
+    if (isRecording) return false;
+    stream = microphone(audioSource: AudioSource.DEFAULT, sampleRate: 16000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_16BIT);
+
+    setState(() => isRecording = true);
+
+    print("Start Listening to the microphone");
+    listener = stream.listen((samples) => currentSamples = samples);
+    return true;
+  }
+
+  bool _stopListening() {
+    if (!isRecording) return false;
+    print("Stop Listening to the microphone");
+    listener.cancel();
+
+    setState(() {
+      isRecording = false;
+      currentSamples = null;
+    });
+    return true;
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     if (!mounted) return;
+    isActive = true;
+
     controller = AnimationController(duration: Duration(seconds: 1), vsync: this)
       ..addListener(() {
-        if(isRecording) setState(() {});
+        if (isRecording) setState(() {});
       })
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed) controller.reverse();
@@ -102,9 +124,25 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      isActive = true;
+      print("Resume app");
+      _controlMicStream(cmd: memRecordingState ? Cmd.start : Cmd.stop);
+    }
+    else if (isActive){
+      print("Pause app");
+      memRecordingState = isRecording;
+      _controlMicStream(cmd: Cmd.stop);
+      isActive = false;
+    }
+  }
+
+  @override
   void dispose() {
     listener.cancel();
     controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }
@@ -132,10 +170,6 @@ class WavePainter extends CustomPainter {
         ..style = PaintingStyle.stroke;
 
     points = toPoints(samples);
-    //print(points);
-    //print(size.height);
-    print(absMax);
-    //print(samples);
 
     Path path = new Path();
     path.addPolygon(points, false);
