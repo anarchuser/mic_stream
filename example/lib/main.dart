@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:mic_stream/mic_stream.dart';
 
 enum Command {
@@ -31,6 +33,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
   bool isRecording = false;
   bool memRecordingState = false;
   bool isActive;
+  DateTime startTime;
 
   int page = 0;
   List state = ["SoundWavePage", "InformationPage"];
@@ -68,7 +71,10 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
     if (isRecording) return false;
     stream = microphone(audioSource: AudioSource.DEFAULT, sampleRate: 16000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_16BIT);
 
-    setState(() => isRecording = true);
+    setState(() {
+      isRecording = true;
+      startTime = DateTime.now();
+    });
 
     print("Start Listening to the microphone");
     listener = stream.listen((samples) => currentSamples = samples);
@@ -83,6 +89,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
     setState(() {
       isRecording = false;
       currentSamples = null;
+      startTime = null;
     });
     return true;
   }
@@ -132,13 +139,16 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
               title: Text("Statistics"),
             )
           ],
+          backgroundColor: Colors.black26,
+          elevation: 20,
+          currentIndex: page,
           onTap: _controlPage,
         ),
         body: (page == 0) ?
           CustomPaint(
             painter: WavePainter(currentSamples, _getBgColor(), context),
           ) :
-          Diagnostics()
+          Diagnostics(isRecording, startTime: startTime,)
       ),
     );
   }
@@ -222,8 +232,40 @@ class WavePainter extends CustomPainter {
 }
 
 class Diagnostics extends StatelessWidget {
+  final bool isRecording;
+  final DateTime startTime;
+
+  final String url = "https://github.com/anarchuser/mic_stream";
+
+  Diagnostics(this.isRecording, {this.startTime});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp();
+    return ListView(
+      children: <Widget> [
+        ListTile(
+          leading: Icon(Icons.title),
+          title: Text("Microphone Streaming Example App")
+        ),
+        ListTile(
+          leading: Icon(Icons.input),
+          title: MaterialButton(
+            child: Text("Github Repository"),
+            onPressed: _launchURL,
+          )
+        ),
+        ListTile(
+          leading: Icon(Icons.keyboard_voice),
+          title: Text((isRecording ? "Recording" : "Not recording")),
+        ),
+        ListTile(
+          leading: Icon(Icons.access_time),
+          title: Text((isRecording ? DateTime.now().difference(startTime).toString() : "Not recording"))
+        ),
+      ]
+    );
   }
+
+  // According to "url_launcher"'s example implementation on https://pub.dev/packages/url_launcher
+  void _launchURL() => launch(url);
 }
