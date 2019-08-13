@@ -128,12 +128,14 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin, Widg
     if (state == AppLifecycleState.resumed) {
       isActive = true;
       print("Resume app");
+
       _controlMicStream(cmd: memRecordingState ? Cmd.start : Cmd.stop);
     }
     else if (isActive){
-      print("Pause app");
       memRecordingState = isRecording;
       _controlMicStream(cmd: Cmd.stop);
+
+      print("Pause app");
       isActive = false;
     }
   }
