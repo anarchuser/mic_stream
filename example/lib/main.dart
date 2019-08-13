@@ -32,6 +32,9 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
   bool memRecordingState = false;
   bool isActive;
 
+  int page = 0;
+  List state = ["SoundWavePage", "InformationPage"];
+
   @override
   void initState() {
     print("Init application");
@@ -41,6 +44,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
       initPlatformState();
     });
   }
+
+  void _controlPage(int index) => setState(() => page = index);
 
   // Responsible for switching between recording / idle state
   void _controlMicStream({Command command: Command.change}) async {
@@ -116,9 +121,24 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
           backgroundColor: _getBgColor(),
           tooltip: (isRecording) ? "Stop recording" : "Start recording",
         ),
-        body: CustomPaint(
-          painter: WavePainter(currentSamples, _getBgColor(), context),
-        )
+        bottomNavigationBar: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.broken_image),
+              title: Text("Sound Wave"),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.view_list),
+              title: Text("Statistics"),
+            )
+          ],
+          onTap: _controlPage,
+        ),
+        body: (page == 0) ?
+          CustomPaint(
+            painter: WavePainter(currentSamples, _getBgColor(), context),
+          ) :
+          Diagnostics()
       ),
     );
   }
@@ -198,5 +218,12 @@ class WavePainter extends CustomPainter {
     if (max == 0) waveHeight = val.toDouble();
     else waveHeight = (val / max) * 0.5 * height;
     return waveHeight + 0.5 * height;
+  }
+}
+
+class Diagnostics extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp();
   }
 }
