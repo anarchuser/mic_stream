@@ -100,3 +100,7 @@ Constructor takes the Sample Rate as optional argument.
 * Fixed value truncation, now ensuring correct values for 16BIT_PCM
 
 + Added a better example application in ./example/lib/main.dart
+
+## 0.2.0+1
+
+* Updated README.

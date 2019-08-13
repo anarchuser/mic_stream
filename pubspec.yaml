@@ -1,6 +1,6 @@
 name: mic_stream
 description: Provides a tool to get the microphone input as PCM Stream [Android only]
-version: 0.2.0
+version: 0.2.0+1
 author: Aaron Alef <aaron.alef@code.berlin>
 homepage: https://github.com/anarchuser
 
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  permission: '0.1.1'
+  permission: "0.1.1"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
