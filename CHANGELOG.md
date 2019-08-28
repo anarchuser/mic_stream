@@ -101,6 +101,10 @@ Constructor takes the Sample Rate as optional argument.
 
 + Added a better example application in ./example/lib/main.dart
 
-## 0.2.0+1
+### 0.2.0+1
 
 * Updated README.
+
+### 0.2.0+2
+
+* Formatted Code.
