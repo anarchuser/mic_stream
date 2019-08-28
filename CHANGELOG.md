@@ -95,16 +95,20 @@ Constructor takes the Sample Rate as optional argument.
 
 * Fixed Issue #8, causing immediate crashes in the latest flutter update
 
+
 ## 0.2.0
 
 * Fixed value truncation, now ensuring correct values for 16BIT_PCM
 
 + Added a better example application in ./example/lib/main.dart
 
+
 ### 0.2.0+1
 
 * Updated README.
 
+
 ### 0.2.0+2
 
 * Formatted Code.
+
