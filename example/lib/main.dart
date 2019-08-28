@@ -14,6 +14,8 @@ enum Command {
   change,
 }
 
+final AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+
 void main() => runApp(MicStreamExampleApp());
 
 class MicStreamExampleApp extends StatefulWidget {
@@ -38,6 +40,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
   int page = 0;
   List state = ["SoundWavePage", "InformationPage"];
+
 
   @override
   void initState() {
@@ -75,7 +78,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
         audioSource: AudioSource.DEFAULT,
         sampleRate: 16000,
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
-        audioFormat: AudioFormat.ENCODING_PCM_8BIT);
+        audioFormat: AUDIO_FORMAT);
 
     setState(() {
       isRecording = true;
@@ -199,7 +202,8 @@ class WavePainter extends CustomPainter {
   BuildContext context;
   Size size;
 
-  static int absMax = 0;
+  // Set max val possible in stream, depending on the config
+  final int absMax = (AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) ? 127 : 32767;
 
   WavePainter(this.samples, this.color, this.context);
 
@@ -230,8 +234,6 @@ class WavePainter extends CustomPainter {
     if (samples == null)
       samples =
           List<int>.filled(size.width.toInt(), (0.5 * size.height).toInt());
-    else
-      samples.forEach((sample) => absMax = max(absMax, sample.abs()));
     for (int i = 0; i < min(size.width, samples.length).toInt(); i++) {
       points.add(
           new Offset(i.toDouble(), project(samples[i], absMax, size.height)));
@@ -240,11 +242,7 @@ class WavePainter extends CustomPainter {
   }
 
   double project(int val, int max, double height) {
-    double waveHeight =
-    if (max == 0)
-      waveHeight = val.toDouble();
-    else
-      waveHeight = (val / max) * 0.5 * height;
+    double waveHeight = (max == 0) ? val.toDouble() : (val / max) * 0.5 * height;
     return waveHeight + 0.5 * height;
   }
 }
