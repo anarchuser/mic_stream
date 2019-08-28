@@ -240,7 +240,7 @@ class WavePainter extends CustomPainter {
   }
 
   double project(int val, int max, double height) {
-    double waveHeight;
+    double waveHeight =
     if (max == 0)
       waveHeight = val.toDouble();
     else
