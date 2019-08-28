@@ -75,7 +75,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
         audioSource: AudioSource.DEFAULT,
         sampleRate: 16000,
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
-        audioFormat: AudioFormat.ENCODING_PCM_16BIT);
+        audioFormat: AudioFormat.ENCODING_PCM_8BIT);
 
     setState(() {
       isRecording = true;

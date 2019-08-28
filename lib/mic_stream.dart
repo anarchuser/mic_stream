@@ -24,12 +24,14 @@ const EventChannel _microphoneEventChannel = EventChannel('aaron.code.com/mic_st
 Permissions _permission;
 Stream<dynamic> _microphone;
 
+// This function manages the permission and ensures you're allowed to record audio
 Future<bool> get permissionStatus async {
   _permission = (await Permission.getPermissionsStatus([PermissionName.Microphone])).first;
   if (_permission.permissionStatus != PermissionStatus.allow) _permission = (await Permission.requestPermissions([PermissionName.Microphone])).first;
   return (_permission.permissionStatus == PermissionStatus.allow);
 }
 
+// This function sets up a connection to the java backend (if not already available) and yields the elements in the stream
 Stream<List<int>> microphone({AudioSource audioSource: _DEFAULT_AUDIO_SOURCE, int sampleRate: _DEFAULT_SAMPLE_RATE, ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG, AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async* {
   if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE) throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
   if (!(await permissionStatus)) throw (PlatformException);
@@ -38,19 +40,27 @@ Stream<List<int>> microphone({AudioSource audioSource: _DEFAULT_AUDIO_SOURCE, in
   yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT) ? _parseStream(_microphone) : _squashStream(_microphone);
 }
 
+// I'm getting a weird stream (_BroadcastStream<dynamic>), so to work with this, I cast it to Stream<List<int>>
+// The first step converts _BroadcastStream to the normal Dart Stream
 Stream<List<int>> _parseStream(Stream audio) {
+  print(audio.runtimeType);
   return audio.map(_parseList);
 }
 
+// The second step casts the <dynamic> byte list to a List<int>
 List<int> _parseList(var samples) {
   List<int> sampleList = samples;
   return sampleList;
 }
 
+
+// The following is needed for 16bit PCM transmission, as I can only transmit byte arrays from java to dart
+// This function then squashes two bytes together to one short
 Stream<List<int>> _squashStream(Stream audio) {
   return audio.map(_squashList);
 }
 
+// If someone reading this has a suggesting to do this more efficiently, let me know
 List<int> _squashList(var byteSamples) {
   List<int> shortSamples = List();
   bool isFirstElement = true;
