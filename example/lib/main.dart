@@ -21,7 +21,8 @@ class MicStreamExampleApp extends StatefulWidget {
   _MicStreamExampleAppState createState() => _MicStreamExampleAppState();
 }
 
-class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+class _MicStreamExampleAppState extends State<MicStreamExampleApp>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   Stream<List<int>> stream;
   StreamSubscription<List<int>> listener;
   List<int> currentSamples;
@@ -52,7 +53,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
 
   // Responsible for switching between recording / idle state
   void _controlMicStream({Command command: Command.change}) async {
-    switch(command) {
+    switch (command) {
       case Command.change:
         _changeListening();
         break;
@@ -65,11 +66,16 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
     }
   }
 
-  bool _changeListening() => !isRecording ? _startListening() : _stopListening();
+  bool _changeListening() =>
+      !isRecording ? _startListening() : _stopListening();
 
   bool _startListening() {
     if (isRecording) return false;
-    stream = microphone(audioSource: AudioSource.DEFAULT, sampleRate: 16000, channelConfig: ChannelConfig.CHANNEL_IN_MONO, audioFormat: AudioFormat.ENCODING_PCM_16BIT);
+    stream = microphone(
+        audioSource: AudioSource.DEFAULT,
+        sampleRate: 16000,
+        channelConfig: ChannelConfig.CHANNEL_IN_MONO,
+        audioFormat: AudioFormat.ENCODING_PCM_16BIT);
 
     setState(() {
       isRecording = true;
@@ -101,57 +107,62 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
 
     Statistics(false);
 
-    controller = AnimationController(duration: Duration(seconds: 1), vsync: this)
-      ..addListener(() {
-        if (isRecording) setState(() {});
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) controller.reverse();
-        else if (status == AnimationStatus.dismissed) controller.forward();
-      })
-      ..forward();
+    controller =
+        AnimationController(duration: Duration(seconds: 1), vsync: this)
+          ..addListener(() {
+            if (isRecording) setState(() {});
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed)
+              controller.reverse();
+            else if (status == AnimationStatus.dismissed) controller.forward();
+          })
+          ..forward();
   }
 
   Color _getBgColor() => (isRecording) ? Colors.red : Colors.cyan;
-  Icon _getIcon() => (isRecording) ? Icon(Icons.stop) : Icon(Icons.keyboard_voice);
+  Icon _getIcon() =>
+      (isRecording) ? Icon(Icons.stop) : Icon(Icons.keyboard_voice);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.dark(),
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin: mic_stream :: Debug'),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _controlMicStream,
-          child: _getIcon(),
-          foregroundColor: _iconColor,
-          backgroundColor: _getBgColor(),
-          tooltip: (isRecording) ? "Stop recording" : "Start recording",
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.broken_image),
-              title: Text("Sound Wave"),
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.view_list),
-              title: Text("Statistics"),
-            )
-          ],
-          backgroundColor: Colors.black26,
-          elevation: 20,
-          currentIndex: page,
-          onTap: _controlPage,
-        ),
-        body: (page == 0) ?
-          CustomPaint(
-            painter: WavePainter(currentSamples, _getBgColor(), context),
-          ) :
-          Statistics(isRecording, startTime: startTime,)
-      ),
+          appBar: AppBar(
+            title: const Text('Plugin: mic_stream :: Debug'),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _controlMicStream,
+            child: _getIcon(),
+            foregroundColor: _iconColor,
+            backgroundColor: _getBgColor(),
+            tooltip: (isRecording) ? "Stop recording" : "Start recording",
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.broken_image),
+                title: Text("Sound Wave"),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.view_list),
+                title: Text("Statistics"),
+              )
+            ],
+            backgroundColor: Colors.black26,
+            elevation: 20,
+            currentIndex: page,
+            onTap: _controlPage,
+          ),
+          body: (page == 0)
+              ? CustomPaint(
+                  painter: WavePainter(currentSamples, _getBgColor(), context),
+                )
+              : Statistics(
+                  isRecording,
+                  startTime: startTime,
+                )),
     );
   }
 
@@ -161,9 +172,9 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp> with SingleTi
       isActive = true;
       print("Resume app");
 
-      _controlMicStream(command: memRecordingState ? Command.start : Command.stop);
-    }
-    else if (isActive){
+      _controlMicStream(
+          command: memRecordingState ? Command.start : Command.stop);
+    } else if (isActive) {
       memRecordingState = isRecording;
       _controlMicStream(command: Command.stop);
 
@@ -194,14 +205,13 @@ class WavePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-
     this.size = context.size;
     size = this.size;
 
     Paint paint = new Paint()
-        ..color = color
-        ..strokeWidth = 1.0
-        ..style = PaintingStyle.stroke;
+      ..color = color
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
 
     points = toPoints(samples);
 
@@ -215,20 +225,26 @@ class WavePainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldPainting) => true;
 
   // Maps a list of ints and their indices to a list of points on a cartesian grid
-  List<Offset> toPoints (List<int> samples) {
+  List<Offset> toPoints(List<int> samples) {
     List<Offset> points = [];
-    if (samples == null) samples = List<int>.filled(size.width.toInt(), (0.5 * size.height).toInt());
-    else samples.forEach((sample) => absMax = max(absMax, sample.abs()));
+    if (samples == null)
+      samples =
+          List<int>.filled(size.width.toInt(), (0.5 * size.height).toInt());
+    else
+      samples.forEach((sample) => absMax = max(absMax, sample.abs()));
     for (int i = 0; i < min(size.width, samples.length).toInt(); i++) {
-      points.add(new Offset(i.toDouble(), project(samples[i], absMax, size.height)));
+      points.add(
+          new Offset(i.toDouble(), project(samples[i], absMax, size.height)));
     }
     return points;
   }
 
   double project(int val, int max, double height) {
     double waveHeight;
-    if (max == 0) waveHeight = val.toDouble();
-    else waveHeight = (val / max) * 0.5 * height;
+    if (max == 0)
+      waveHeight = val.toDouble();
+    else
+      waveHeight = (val / max) * 0.5 * height;
     return waveHeight + 0.5 * height;
   }
 }
@@ -243,29 +259,26 @@ class Statistics extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: <Widget> [
-        ListTile(
+    return ListView(children: <Widget>[
+      ListTile(
           leading: Icon(Icons.title),
-          title: Text("Microphone Streaming Example App")
-        ),
-        ListTile(
+          title: Text("Microphone Streaming Example App")),
+      ListTile(
           leading: Icon(Icons.input),
           title: MaterialButton(
             child: Text("Github Repository"),
             onPressed: _launchURL,
-          )
-        ),
-        ListTile(
-          leading: Icon(Icons.keyboard_voice),
-          title: Text((isRecording ? "Recording" : "Not recording")),
-        ),
-        ListTile(
+          )),
+      ListTile(
+        leading: Icon(Icons.keyboard_voice),
+        title: Text((isRecording ? "Recording" : "Not recording")),
+      ),
+      ListTile(
           leading: Icon(Icons.access_time),
-          title: Text((isRecording ? DateTime.now().difference(startTime).toString() : "Not recording"))
-        ),
-      ]
-    );
+          title: Text((isRecording
+              ? DateTime.now().difference(startTime).toString()
+              : "Not recording"))),
+    ]);
   }
 
   // According to "url_launcher"'s example implementation on https://pub.dev/packages/url_launcher
