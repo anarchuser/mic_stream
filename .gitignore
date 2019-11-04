@@ -8,8 +8,7 @@ pubspec.lock
 
 build/
 
-.idea/*
-./.idea/workspace.xml
-.idea/workspace.xml
+/.idea/*
+/.gradle/*
 
 mic_stream.iml

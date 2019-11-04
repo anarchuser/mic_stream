@@ -14,7 +14,7 @@ enum Command {
   change,
 }
 
-final AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+const AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 
 void main() => runApp(MicStreamExampleApp());
 
