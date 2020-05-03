@@ -112,3 +112,7 @@ Constructor takes the Sample Rate as optional argument.
 
 * Formatted Code.
 
+
+### 0.2.0+3
+
+* Try to fix AndroidX compatibility issues

@@ -60,7 +60,7 @@ Stream<List<int>> _squashStream(Stream audio) {
   return audio.map(_squashList);
 }
 
-// If someone reading this has a suggesting to do this more efficiently, let me know
+// If someone reading this has a suggestion to do this more efficiently, let me know
 List<int> _squashList(var byteSamples) {
   List<int> shortSamples = List();
   bool isFirstElement = true;

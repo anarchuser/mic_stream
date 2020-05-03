@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:mic_stream/mic_stream.dart';
 
 enum Command {
@@ -262,12 +260,6 @@ class Statistics extends StatelessWidget {
           leading: Icon(Icons.title),
           title: Text("Microphone Streaming Example App")),
       ListTile(
-          leading: Icon(Icons.input),
-          title: MaterialButton(
-            child: Text("Github Repository"),
-            onPressed: _launchURL,
-          )),
-      ListTile(
         leading: Icon(Icons.keyboard_voice),
         title: Text((isRecording ? "Recording" : "Not recording")),
       ),
@@ -278,7 +270,4 @@ class Statistics extends StatelessWidget {
               : "Not recording"))),
     ]);
   }
-
-  // According to "url_launcher"'s example implementation on https://pub.dev/packages/url_launcher
-  void _launchURL() => launch(url);
 }
