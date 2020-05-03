@@ -1,5 +1,5 @@
 group 'com.code.aaron.micstream'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 buildscript {
     repositories {
@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.android.tools.build:gradle:3.5.0'
     }
 }
 
@@ -23,7 +23,6 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.0"
 
     defaultConfig {
         minSdkVersion 16
