@@ -32,6 +32,11 @@ Future<bool> get permissionStatus async {
 }
 
 // This function sets up a connection to the java backend (if not already available) and yields the elements in the stream
+/// Returns a stream of lists of ints with the properties declared with the parameters.
+/// audioSource:     The device used to capture audio. The default let's the OS decide.
+/// sampleRate:      The amount of samples per second. More samples give better quality at the cost of higher data transmission
+/// channelConfig:   States whether audio is mono or stereo
+/// audioFormat:     Switch between 8- and 16-bit PCM streams
 Stream<List<int>> microphone({AudioSource audioSource: _DEFAULT_AUDIO_SOURCE, int sampleRate: _DEFAULT_SAMPLE_RATE, ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG, AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async* {
   if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE) throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
   if (!(await permissionStatus)) throw (PlatformException);
