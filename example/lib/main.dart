@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:mic_stream/mic_stream.dart';
+import 'package:path_provider/path_provider.dart';
 
 enum Command {
   start,
@@ -26,8 +28,8 @@ class MicStreamExampleApp extends StatefulWidget {
 
 class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  Stream<List<int>> stream;
-  StreamSubscription<List<int>> listener;
+  Stream stream;
+  StreamSubscription listener;
   List<int> currentSamples;
 
   // Refreshes the Widget for every possible tick to force a rebuild of the sound wave
@@ -87,7 +89,9 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     });
 
     print("Start Listening to the microphone");
-    listener = stream.listen((samples) => currentSamples = samples);
+    listener = stream.listen((samples) async { 
+	File((await getApplicationDocumentsDirectory()).path + "/pcmdata").writeAsBytesSync(samples, mode:FileMode.append); 
+	currentSamples = samples; });
     return true;
   }
 
