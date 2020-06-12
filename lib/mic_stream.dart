@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:permission/permission.dart';
-
+import 'package:permission_handler/permission_handler.dart'as handler;
 import 'package:flutter/services.dart';
-
+import 'dart:io' show Platform;
 // In reference to the implementation of the official sensors plugin
 // https://github.com/flutter/plugins/tree/master/packages/sensors
 
@@ -39,6 +39,10 @@ Stream<dynamic> _microphone;
 
 // This function manages the permission and ensures you're allowed to record audio
 Future<bool> get permissionStatus async {
+  if(Platform.isIOS) {
+    var micStatus = await handler.Permission.microphone.request();
+    return !(micStatus.isDenied);
+  } 
   _permission =
       (await Permission.getPermissionsStatus([PermissionName.Microphone]))
           .first;
