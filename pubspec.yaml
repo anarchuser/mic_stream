@@ -12,8 +12,6 @@ module:
 dependencies:
   flutter:
     sdk: flutter
-
-  permission: ^0.1.7
   permission_handler: ^5.0.0+hotfix.3
 
 # For information on the generic Dart part of this file, see the

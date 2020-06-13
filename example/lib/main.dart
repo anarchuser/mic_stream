@@ -77,7 +77,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
   bool _startListening() {
     if (isRecording) return false;
-    stream = microphone(
+    stream = MicStream.microphone(
         audioSource: AudioSource.DEFAULT,
         sampleRate: 16000,
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
@@ -87,8 +87,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
       isRecording = true;
       startTime = DateTime.now();
     });
-
-    print("Start Listening to the microphone");
+    MicStream.sampleRate.then((x) => MicStream.bitDepth.then((y) => print("Start Listening to the microphone, sample rate is $x, bit depth is $y")));
     listener = stream.listen((samples) async { 
 	File((await getApplicationDocumentsDirectory()).path + "/pcmdata").writeAsBytesSync(samples, mode:FileMode.append); 
 	currentSamples = samples; });
