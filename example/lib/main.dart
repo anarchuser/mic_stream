@@ -72,31 +72,29 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     }
   }
 
-  bool _changeListening() =>
-      !isRecording ? _startListening() : _stopListening();
+  Future<bool> _changeListening() async =>
+      !isRecording ? await _startListening() : _stopListening();
 
-  bool _startListening() {
+  Future<bool> _startListening() async {
     if (isRecording) return false;
-    stream = MicStream.microphone(
+    // if this is the first time invoking the microphone() method to get the stream, we don't yet have access to the sampleRate and bitDepth properties
+    stream = await MicStream.microphone(
         audioSource: AudioSource.DEFAULT,
         sampleRate: 16000,
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
         audioFormat: AUDIO_FORMAT);
+    // after invoking the method for the first time, though, these will be available;
+    // It is not necessary to setup a listener first, the stream only needs to be returned first
+    print("Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}");
 
     setState(() {
       isRecording = true;
       startTime = DateTime.now();
     });
-    bool gotFirst = false;
     listener = stream.listen((samples) async { 
-      if(!gotFirst) {
-        MicStream.sampleRate.then((x) => MicStream.bitDepth.then((y) => print("Received first sample at sample rate is $x and bit depth $y")));
-        gotFirst = true;
-      }
 	    File((await getApplicationDocumentsDirectory()).path + "/pcmdata").writeAsBytesSync(samples, mode:FileMode.append); 
 	    currentSamples = samples; 
     });
-    MicStream.sampleRate.then((x) => MicStream.bitDepth.then((y) => print("Start Listening to the microphone, sample rate is $x, bit depth is $y")));
     return true;
   }
 

@@ -39,12 +39,15 @@ class MicStream {
     static const MethodChannel _microphoneMethodChannel = 
         MethodChannel('aaron.code.com/mic_stream_method_channel');
     
-    /// The actual sample rate used for streaming.  This may return zero if invoked immediately after listening to the _microphone Stream 
-    /// (receiveBroadcastStream seems to be asynchronous, and will yield its Stream before the native-side has finished execution).
-    /// If so, you will need to invoke this again after the first sample is received to get the actual sampleRate.
-    static Future<double> get sampleRate async { return await _microphoneMethodChannel.invokeMethod("getSampleRate") as double; }
-    /// The actual bit depth used for streaming. This may return zero if invoked immediately after listening to the _microphone Stream (see explanation under sampleRate above).
-    static Future<int> get bitDepth async {  return await _microphoneMethodChannel.invokeMethod("getBitDepth") as int; }    
+    /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream 
+    static Future<double> _sampleRate;
+    static Future<double> get sampleRate => _sampleRate;
+ 
+    /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
+    static Future<int> _bitDepth;
+    static Future<int> get bitDepth => _bitDepth;
+
+    /// The configured microphone stream;
     static Stream<Uint8List> _microphone;
     
     // This function manages the permission and ensures you're allowed to record audio
@@ -52,23 +55,23 @@ class MicStream {
         var micStatus = await handler.Permission.microphone.request();
         return !micStatus.isDenied;
     }
-    
-    // This function sets up a connection to the native backend (if not already available) and yields the elements in the stream
+
+    /// This function initializes a connection to the native backend (if not already available). 
     /// Returns a Uint8List stream representing the captured audio. 
     /// IMPORTANT - on iOS, there is no guarantee that captured audio will be encoded with the requested sampleRate/bitDepth.
-    /// You must check the sampleRate and bitDepth properties of the MicStream object *after* listening to the stream.
-    /// This is why this method returns a Uint8List - if 16-bit encoding was requested,
-    /// first check that returned stream is actually 16-bit, then manually cast the result using uint8List.buffer.asUint16List()
+    /// You must check the sampleRate and bitDepth properties of the MicStream object *after* invoking this method (though this does not need to be before listening to the returned stream).
+    /// This is why this method returns a Uint8List - if you request a 16-bit encoding, you will need to check that
+    /// the returned stream is actually returning 16-bit data, and if so, manually cast uint8List.buffer.asUint16List()
     /// audioSource:     The device used to capture audio. The default let's the OS decide.
     /// sampleRate:      The amount of samples per second. More samples give better quality at the cost of higher data transmission
     /// channelConfig:   States whether audio is mono or stereo
     /// audioFormat:     Switch between 8- and 16-bit PCM streams
     ///
-    static Stream<Uint8List> microphone(
+    static Future<Stream<Uint8List>> microphone(
         {AudioSource audioSource: _DEFAULT_AUDIO_SOURCE,
         int sampleRate: _DEFAULT_SAMPLE_RATE,
         ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG,
-        AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async* {
+        AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async {
       if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
         throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
       if (!(await permissionStatus)) throw (PlatformException);
@@ -79,6 +82,23 @@ class MicStream {
           channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
           audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
         ]).cast<Uint8List>();
-      yield* _microphone;
+
+      // sampleRate/bitDepth should be populated before any attempt to consume the stream externally.
+      // configure these as Completers and listen to the stream internally before returning
+      // these will complete only when this internal listener is called     
+      StreamSubscription<Uint8List> listener;
+      var sampleRateCompleter = new Completer<double>();
+      var bitDepthCompleter = new Completer<int>();
+      _sampleRate = sampleRateCompleter.future;
+      _bitDepth = bitDepthCompleter.future;
+
+      listener = _microphone.listen((x) async {  
+        await listener.cancel();
+        listener = null;
+        sampleRateCompleter.complete(await _microphoneMethodChannel.invokeMethod("getSampleRate") as double);
+        bitDepthCompleter.complete(await _microphoneMethodChannel.invokeMethod("getBitDepth") as int);
+      });
+
+      return _microphone;
     }
 } 
