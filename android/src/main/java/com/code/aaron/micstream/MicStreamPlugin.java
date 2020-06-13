@@ -11,6 +11,10 @@ import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.Looper;
 
+import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
+import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
@@ -20,15 +24,19 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
  */
 
 @TargetApi(16)  // Should be unnecessary, but isn't // fix build.gradle...?
-public class MicStreamPlugin implements EventChannel.StreamHandler {
+public class MicStreamPlugin implements EventChannel.StreamHandler, MethodCallHandler {
     private static final String MICROPHONE_CHANNEL_NAME = "aaron.code.com/mic_stream";
+    private static final String MICROPHONE_METHOD_CHANNEL_NAME = "aaron.code.com/mic_stream_method_channel";
 
     /**
      * Plugin registration
      */
     public static void registerWith(Registrar registrar) {
         final EventChannel microphone = new EventChannel(registrar.messenger(), MICROPHONE_CHANNEL_NAME);
-        microphone.setStreamHandler(new MicStreamPlugin());
+        MicStreamPlugin instance = new MicStreamPlugin();
+        microphone.setStreamHandler(instance);
+        MethodChannel methodChannel = new MethodChannel(registrar.messenger(), MICROPHONE_METHOD_CHANNEL_NAME);
+        methodChannel.setMethodCallHandler(instance);
     }
 
     private EventChannel.EventSink eventSink;
@@ -38,63 +46,53 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
 
     private int AUDIO_SOURCE = MediaRecorder.AudioSource.DEFAULT;
     private int SAMPLE_RATE = 16000;
+    private int actualSampleRate;
     private int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
+    private int actualBitDepth;
     private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
 
     // Runnable management
     private volatile boolean record = false;
     private volatile boolean isRecording = false;
 
+    // Method channel handlers to get sample rate / bit-depth
+    @Override
+    public void onMethodCall(MethodCall call, Result result) {
+        switch (call.method) {
+            case "getSampleRate":
+                result.success((double)this.actualSampleRate); // cast to double just for compatibility with the iOS version
+                break;
+            case "getBitDepth":
+                result.success(this.actualBitDepth);
+                break;
+            default:
+                result.notImplemented();
+                break;
+        }
+    }
+
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
             isRecording = true;
+            
+            actualSampleRate = recorder.getSampleRate();
+            actualBitDepth = (recorder.getAudioFormat() == AudioFormat.ENCODING_PCM_8BIT ? 8 : 16);
 
             // Repeatedly push audio samples to stream
             while (record) {
 
-                // 8 Bit encoding
-                if (AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) {
+                // Read audio data into new byte array
+                byte[] data = new byte[BUFFER_SIZE];
+                recorder.read(data, 0, BUFFER_SIZE);
 
-                    // Read audio data into new byte array
-                    byte[] data = new byte[BUFFER_SIZE];
-                    recorder.read(data, 0, BUFFER_SIZE);
-
-                    // push data into stream
-                    try {
-                        eventSink.success(data);
-                    } catch (IllegalArgumentException e) {
-                        System.out.println("mic_stream: " + Arrays.hashCode(data) + " is not valid!");
-                        eventSink.error("-1", "Invalid Data", e);
-                    }
-                }
-
-                // 16 Bit encoding
-                else if (AUDIO_FORMAT == AudioFormat.ENCODING_PCM_16BIT) {
-
-                    // Read audio data into new short array
-                    short[] data_s = new short[BUFFER_SIZE];
-                    byte[] data_b = new byte[BUFFER_SIZE * 2];
-                    recorder.read(data_s, 0, BUFFER_SIZE);
-
-                    // Split short into two bytes
-                    for (int i = 0; i < BUFFER_SIZE; i++) {
-                        data_b[2 * i] = (byte) Math.floor((data_s[i] + 32767) / 256.0);
-                        data_b[2*i+1] = (byte) ((data_s[i] + 32767) % 256);
-                    }
-
-                    // push data into stream
-                    try {
-                        eventSink.success(data_b);
-                    } catch (IllegalArgumentException e) {
-                        System.out.println("mic_stream: " + Arrays.hashCode(data_b) + " is not valid!");
-                        eventSink.error("-2", "Invalid Data", e);
-                    }
-                }
-                else {
-                    eventSink.error("-3", "Invalid Audio Format specified", null);
-                    break;
+                // push data into stream
+                try {
+                    eventSink.success(data);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("mic_stream: " + Arrays.hashCode(data) + " is not valid!");
+                    eventSink.error("-1", "Invalid Data", e);
                 }
             }
             isRecording = false;
@@ -167,14 +165,24 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
                     eventSink.error("-3", "Invalid AudioRecord parameters", e);
                 }
         }
+        
+        if(AUDIO_FORMAT != AudioFormat.ENCODING_PCM_8BIT && AUDIO_FORMAT != AudioFormat.ENCODING_PCM_16BIT) {
+            eventSink.error("-3", "Invalid Audio Format specified", null);
+            return;
+        }
 
         this.eventSink = new MainThreadEventSink(eventSink);
 
         // Try to initialize and start the recorder
         recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
-        if (recorder.getState() != AudioRecord.STATE_INITIALIZED) eventSink.error("-1", "PlatformError", null);
+        if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
+            eventSink.error("-1", "PlatformError", null);
+            return;
+        }
+        
         recorder.startRecording();
 
+        
         // Start runnable
         record = true;
         new Thread(runnable).start();
@@ -184,11 +192,12 @@ public class MicStreamPlugin implements EventChannel.StreamHandler {
     public void onCancel(Object o) {
         // Stop runnable
         record = false;
-
-        // Stop and reset audio recorder
-        recorder.stop();
-        recorder.release();
-        recorder = null;
+        if(recorder != null) {
+            // Stop and reset audio recorder
+            recorder.stop();
+            recorder.release();
+            recorder = null;
+        }
     }
 }
 

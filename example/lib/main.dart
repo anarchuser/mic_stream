@@ -87,10 +87,16 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
       isRecording = true;
       startTime = DateTime.now();
     });
-    MicStream.sampleRate.then((x) => MicStream.bitDepth.then((y) => print("Start Listening to the microphone, sample rate is $x, bit depth is $y")));
+    bool gotFirst = false;
     listener = stream.listen((samples) async { 
-	File((await getApplicationDocumentsDirectory()).path + "/pcmdata").writeAsBytesSync(samples, mode:FileMode.append); 
-	currentSamples = samples; });
+      if(!gotFirst) {
+        MicStream.sampleRate.then((x) => MicStream.bitDepth.then((y) => print("Received first sample at sample rate is $x and bit depth $y")));
+        gotFirst = true;
+      }
+	    File((await getApplicationDocumentsDirectory()).path + "/pcmdata").writeAsBytesSync(samples, mode:FileMode.append); 
+	    currentSamples = samples; 
+    });
+    MicStream.sampleRate.then((x) => MicStream.bitDepth.then((y) => print("Start Listening to the microphone, sample rate is $x, bit depth is $y")));
     return true;
   }
 

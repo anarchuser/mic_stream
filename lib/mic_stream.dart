@@ -39,10 +39,12 @@ class MicStream {
     static const MethodChannel _microphoneMethodChannel = 
         MethodChannel('aaron.code.com/mic_stream_method_channel');
     
-    static double _sampleRate;
-    static Future<double> get sampleRate async { _sampleRate = _sampleRate ?? await _microphoneMethodChannel.invokeMethod("getSampleRate") as double; return _sampleRate; }
-    static int _bitDepth;
-    static Future<int> get bitDepth async { _bitDepth = _bitDepth ?? await _microphoneMethodChannel.invokeMethod("getBitDepth") as int; return _bitDepth; }    
+    /// The actual sample rate used for streaming.  This may return zero if invoked immediately after listening to the _microphone Stream 
+    /// (receiveBroadcastStream seems to be asynchronous, and will yield its Stream before the native-side has finished execution).
+    /// If so, you will need to invoke this again after the first sample is received to get the actual sampleRate.
+    static Future<double> get sampleRate async { return await _microphoneMethodChannel.invokeMethod("getSampleRate") as double; }
+    /// The actual bit depth used for streaming. This may return zero if invoked immediately after listening to the _microphone Stream (see explanation under sampleRate above).
+    static Future<int> get bitDepth async {  return await _microphoneMethodChannel.invokeMethod("getBitDepth") as int; }    
     static Stream<Uint8List> _microphone;
     
     // This function manages the permission and ensures you're allowed to record audio
