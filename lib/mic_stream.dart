@@ -47,6 +47,9 @@ class MicStream {
     static Future<int> _bitDepth;
     static Future<int> get bitDepth => _bitDepth;
 
+    static Future<int> _bufferSize;
+    static Future<int> get bufferSize => _bufferSize;
+
     /// The configured microphone stream;
     static Stream<Uint8List> _microphone;
     
@@ -74,7 +77,7 @@ class MicStream {
         AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async {
       if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
         throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
-      if (!(await permissionStatus)) throw (PlatformException);
+      //if (!(await permissionStatus)) throw (PlatformException);
     
       _microphone = _microphone ?? _microphoneEventChannel.receiveBroadcastStream([
           audioSource.index,
@@ -89,16 +92,20 @@ class MicStream {
       StreamSubscription<Uint8List> listener;
       var sampleRateCompleter = new Completer<double>();
       var bitDepthCompleter = new Completer<int>();
+      var bufferSizeCompleter = new Completer<int>();
       _sampleRate = sampleRateCompleter.future;
       _bitDepth = bitDepthCompleter.future;
+      _bufferSize = bufferSizeCompleter.future;
 
       listener = _microphone.listen((x) async {  
         await listener.cancel();
         listener = null;
         sampleRateCompleter.complete(await _microphoneMethodChannel.invokeMethod("getSampleRate") as double);
         bitDepthCompleter.complete(await _microphoneMethodChannel.invokeMethod("getBitDepth") as int);
+        bufferSizeCompleter.complete(await _microphoneMethodChannel.invokeMethod("getBufferSize") as int);
       });
 
       return _microphone;
     }
+
 } 

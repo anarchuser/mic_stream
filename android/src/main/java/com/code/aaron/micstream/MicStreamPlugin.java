@@ -66,6 +66,9 @@ public class MicStreamPlugin implements EventChannel.StreamHandler, MethodCallHa
             case "getBitDepth":
                 result.success(this.actualBitDepth);
                 break;
+            case "getBufferSize":
+                result.success(this.BUFFER_SIZE);
+                break;
             default:
                 result.notImplemented();
                 break;
