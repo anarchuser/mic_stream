@@ -23,7 +23,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     var AUDIO_FORMAT:AudioFormat = AudioFormat.ENCODING_PCM_16BIT; // this is the encoding/bit-depth the user wants
     var actualBitDepth:UInt32?; // this is the actual hardware bit-depth
     var AUDIO_SOURCE:AudioSource = AudioSource.DEFAULT;
-    var BUFFER_SIZE = 1024;
+    var BUFFER_SIZE = 4096;
     var eventSink:FlutterEventSink?;
     var session : AVCaptureSession!
     
@@ -33,8 +33,11 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 result(self.actualSampleRate)
                 break;
             case "getBitDepth":
-               result(self.actualBitDepth)
-               break;
+                result(self.actualBitDepth)
+                break;
+            case "getBufferSize":
+                result(self.BUFFER_SIZE)
+                break;
             default:
                 result(FlutterMethodNotImplemented)
         }
@@ -128,14 +131,14 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     
     public func captureOutput(_            output      : AVCaptureOutput,
                    didOutput    sampleBuffer: CMSampleBuffer,
-                   from         connection  : AVCaptureConnection) {
+                   from         connection  : AVCaptureConnection) {	
 
         var buffer: CMBlockBuffer? = nil
         let numChannels:UInt32 = self.CHANNEL_CONFIG == ChannelConfig.CHANNEL_IN_MONO ? 1 : 2;
         let audioBuffer = AudioBuffer(mNumberChannels: numChannels, mDataByteSize: 0, mData: nil)
         var audioBufferList = AudioBufferList(mNumberBuffers: 1,
                                           mBuffers: audioBuffer)
-
+        
         CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(
             sampleBuffer,
             bufferListSizeNeededOut: nil,
