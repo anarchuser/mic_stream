@@ -1,3 +1,7 @@
+## 0.3.0-dev
+
+* Use generics to enable the use of either Stream <List <int>> or Stream <int>
+
 ### 0.2.1
 
 * Update permission plugin dependency

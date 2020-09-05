@@ -75,7 +75,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
   bool _startListening() {
     if (isRecording) return false;
-    stream = microphone(
+    stream = microphone<List<int>>(
         audioSource: AudioSource.DEFAULT,
         sampleRate: 16000,
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,

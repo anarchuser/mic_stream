@@ -55,7 +55,7 @@ Future<bool> get permissionStatus async {
 /// sampleRate:      The amount of samples per second. More samples give better quality at the cost of higher data transmission
 /// channelConfig:   States whether audio is mono or stereo
 /// audioFormat:     Switch between 8- and 16-bit PCM streams
-Stream<List<int>> microphone(
+Stream<List<int>> microphone <T>(
     {AudioSource audioSource: _DEFAULT_AUDIO_SOURCE,
     int sampleRate: _DEFAULT_SAMPLE_RATE,
     ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG,
@@ -73,8 +73,22 @@ Stream<List<int>> microphone(
     ]);
 
   yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT)
-      ? _parseStream(_microphone)
-      : _squashStream(_microphone);
+      ? _cast(_parseStream(_microphone), T.toString())
+      : _cast(_squashStream(_microphone), T.toString());
+}
+
+Stream _cast(Stream stream, String type) async* {
+  switch (type) {
+    case "List<int>":
+      yield* stream;
+      break;
+    case "int":
+      yield* stream.expand((element) => element);
+      break;
+    default:
+      throw (Exception("Unsupported Type. Only int and List<int> are supported"));
+  }
+
 }
 
 // I'm getting a weird stream (_BroadcastStream<dynamic>), so to work with this, I cast it to Stream<List<int>>
