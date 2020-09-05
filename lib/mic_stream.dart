@@ -74,7 +74,7 @@ Stream<List<int>> microphone <T>(
 
   yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT)
       ? _cast(_parseStream(_microphone), T.toString())
-      : _cast(_squashStream(_microphone), T.toString());
+      : _squashStream(_microphone, T.toString());
 }
 
 Stream _cast(Stream stream, String type) async* {
@@ -106,8 +106,8 @@ List<int> _parseList(var samples) {
 
 // The following is needed for 16bit PCM transmission, as I can only transmit byte arrays from java to dart
 // This function then squashes two bytes together to one short
-Stream<List<int>> _squashStream(Stream audio) {
-  return audio.map(_squashList);
+Stream<List<int>> _squashStream(Stream audio, String type) {
+  return _cast(audio.map(_squashList), type);
 }
 
 // If someone reading this has a suggestion to do this more efficiently, let me know
