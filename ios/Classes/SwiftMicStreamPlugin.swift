@@ -105,7 +105,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 }
                 
                 
-                let numChannels = CHANNEL_CONFIG == ChannelConfig.CHANNEL_IN_MONO ? 1 : 2
+                //let numChannels = CHANNEL_CONFIG == ChannelConfig.CHANNEL_IN_MONO ? 1 : 2
                 // setting the preferred sample rate on AVAudioSession  doesn't magically change the sample rate for our AVCaptureSession
                 // try AVAudioSession.sharedInstance().setPreferredSampleRate(Double(SAMPLE_RATE))
  
