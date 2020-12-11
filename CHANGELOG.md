@@ -1,3 +1,11 @@
+### 0.2.2
+
+* Fixed Issue #11, the plugin also works on iOS devices
+
+* Formatted Code.
+
+* Updated README.
+
 ### 0.2.1
 
 * Update permission plugin dependency

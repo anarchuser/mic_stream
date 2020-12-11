@@ -1,13 +1,28 @@
-# mic_stream: 0.2.1
+# mic_stream: 0.2.2
 
 [Flutter Plugin]
-Provides a tool to get the microphone input as 8 or 16 bit PCM Stream
+Provides a tool to get the microphone input as 8 or 16 bit PCM Stream.
 
 ## About mic_stream:
 
-As Flutter still lacks some functionality, this plugin aims to provide the possibility to easily get an audio stream from the microphone, using a simple java implementation [=> Android only, iOS Support planned in the future].
+As Flutter still lacks some functionality, this plugin aims to provide the possibility to easily get an audio stream from the microphone, using a simple java and swift implementation.
 
 ## How to use:
+
+The plugin provides one method:
+
+`Stream<List<int>> MicStream.microphone({options})`
+
+Listening to this stream starts the audio recorder
+while cancelling the subscription stops the stream.
+
+The plugin also provides information about some properties:
+
+```
+Future<double> sampleRate = await MicStream.sampleRate;
+Future<int> bitDepth = await MicStream.bitDepth;
+Future<int> bufferSize = await MicStream.bufferSize;
+```
 
 ### Permissions
 
@@ -16,18 +31,18 @@ To do so, add this line to the AndroidManifest.xml:
 
 `<uses-permission android:name="android.permission.RECORD_AUDIO"/>`
 
-The plugin provides one method:
+In the Info.plist:
 
-`Stream<List<int>> microphone({options})`
-
-Listening to this stream starts the audio recorder
-while cancelling the subscription stops the stream.
+```
+<key>NSMicrophoneUsageDescription</key>
+<string>Microphone access required</string>
+```
 
 #### Example:
 
 ```
 // Init a new Stream
-Stream<List<int>> stream = microphone(sampleRate: 44100);
+Stream<List<int>> stream = await MicStream.microphone(sampleRate: 44100);
 
 // Start listening to the stream
 StreamSubscription<List<int>> listener = stream.listen((samples) => print(samples));
@@ -38,10 +53,6 @@ StreamSubscription<List<int>> listener = stream.listen((samples) => print(sample
 listener.cancel()
 ```
 
-## Flutter
-
-About Flutter Plugins:
-https://flutter.io/developing-packages/
-
-Flutter Documentation:
-https://flutter.io/docs
+*Note*: This plugin is still under development, and some APIs might not be available yet.
+[Feedback welcome](https://github.com/anarchuser/mic_stream/issues) and
+[Pull Requests](https://github.com/anarchuser/mic_stream/pulls) are most welcome!
