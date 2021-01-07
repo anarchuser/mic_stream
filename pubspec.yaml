@@ -1,6 +1,6 @@
 name: mic_stream
-description: Provides a tool to get the microphone input as PCM Stream [Android only]
-version: 0.2.1
+description: Provides a tool to get the microphone input as PCM Stream
+version: 0.4.0-dev
 homepage: https://github.com/anarchuser
 
 environment:
@@ -12,8 +12,7 @@ module:
 dependencies:
   flutter:
     sdk: flutter
-
-  permission: ^0.1.7
+  permission_handler: ^5.0.0+hotfix.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
@@ -25,9 +24,13 @@ flutter:
   # be modified. They are used by the tooling to maintain consistency when
   # adding or updating assets for this project.
   plugin:
-    android:
-      package: com.code.aaron.micstream
-      pluginClass: MicStreamPlugin
+    platforms:
+      android:
+        package: com.code.aaron.micstream
+        pluginClass: MicStreamPlugin
+      ios:
+        pluginClass: MicStreamPlugin
+
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

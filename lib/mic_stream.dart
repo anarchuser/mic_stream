@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:permission/permission.dart';
-
+import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:flutter/services.dart';
+import 'dart:typed_data';
 
 // In reference to the implementation of the official sensors plugin
 // https://github.com/flutter/plugins/tree/master/packages/sensors
@@ -23,93 +23,92 @@ enum AudioSource {
 enum ChannelConfig { CHANNEL_IN_MONO, CHANNEL_IN_STEREO }
 enum AudioFormat { ENCODING_PCM_8BIT, ENCODING_PCM_16BIT }
 
-const AudioSource _DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
-const ChannelConfig _DEFAULT_CHANNELS_CONFIG = ChannelConfig.CHANNEL_IN_MONO;
-const AudioFormat _DEFAULT_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
-const int _DEFAULT_SAMPLE_RATE = 16000;
+class MicStream {
+  static const AudioSource _DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
+  static const ChannelConfig _DEFAULT_CHANNELS_CONFIG =
+      ChannelConfig.CHANNEL_IN_MONO;
+  static const AudioFormat _DEFAULT_AUDIO_FORMAT =
+      AudioFormat.ENCODING_PCM_8BIT;
+  static const int _DEFAULT_SAMPLE_RATE = 16000;
 
-const int _MIN_SAMPLE_RATE = 1;
-const int _MAX_SAMPLE_RATE = 100000;
+  static const int _MIN_SAMPLE_RATE = 1;
+  static const int _MAX_SAMPLE_RATE = 100000;
 
-const EventChannel _microphoneEventChannel =
-    EventChannel('aaron.code.com/mic_stream');
+  static const EventChannel _microphoneEventChannel =
+      EventChannel('aaron.code.com/mic_stream');
+  static const MethodChannel _microphoneMethodChannel =
+      MethodChannel('aaron.code.com/mic_stream_method_channel');
 
-Permissions _permission;
-Stream<dynamic> _microphone;
+  /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream
+  static Future<double> _sampleRate;
+  static Future<double> get sampleRate => _sampleRate;
 
-// This function manages the permission and ensures you're allowed to record audio
-Future<bool> get permissionStatus async {
-  _permission =
-      (await Permission.getPermissionsStatus([PermissionName.Microphone]))
-          .first;
-  if (_permission.permissionStatus != PermissionStatus.allow)
-    _permission =
-        (await Permission.requestPermissions([PermissionName.Microphone]))
-            .first;
-  return (_permission.permissionStatus == PermissionStatus.allow);
-}
+  /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
+  static Future<int> _bitDepth;
+  static Future<int> get bitDepth => _bitDepth;
 
-// This function sets up a connection to the java backend (if not already available) and yields the elements in the stream
-/// Returns a stream of lists of ints with the properties declared with the parameters.
-/// audioSource:     The device used to capture audio. The default let's the OS decide.
-/// sampleRate:      The amount of samples per second. More samples give better quality at the cost of higher data transmission
-/// channelConfig:   States whether audio is mono or stereo
-/// audioFormat:     Switch between 8- and 16-bit PCM streams
-Stream<List<int>> microphone(
-    {AudioSource audioSource: _DEFAULT_AUDIO_SOURCE,
-    int sampleRate: _DEFAULT_SAMPLE_RATE,
-    ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG,
-    AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async* {
-  if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
-    throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
-  if (!(await permissionStatus)) throw (PlatformException);
+  static Future<int> _bufferSize;
+  static Future<int> get bufferSize => _bufferSize;
 
-  if (_microphone == null)
-    _microphone = _microphoneEventChannel.receiveBroadcastStream([
-      audioSource.index,
-      sampleRate,
-      channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
-      audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
-    ]);
+  /// The configured microphone stream;
+  static Stream<Uint8List> _microphone;
 
-  yield* (audioFormat == AudioFormat.ENCODING_PCM_8BIT)
-      ? _parseStream(_microphone)
-      : _squashStream(_microphone);
-}
-
-// I'm getting a weird stream (_BroadcastStream<dynamic>), so to work with this, I cast it to Stream<List<int>>
-// The first step converts _BroadcastStream to the normal Dart Stream
-Stream<List<int>> _parseStream(Stream audio) {
-  print(audio.runtimeType);
-  return audio.map(_parseList);
-}
-
-// The second step casts the <dynamic> byte list to a List<int>
-List<int> _parseList(var samples) {
-  List<int> sampleList = samples;
-  return sampleList;
-}
-
-// The following is needed for 16bit PCM transmission, as I can only transmit byte arrays from java to dart
-// This function then squashes two bytes together to one short
-Stream<List<int>> _squashStream(Stream audio) {
-  return audio.map(_squashList);
-}
-
-// If someone reading this has a suggestion to do this more efficiently, let me know
-List<int> _squashList(var byteSamples) {
-  List<int> shortSamples = List();
-  bool isFirstElement = true;
-  int sum = 0;
-  for (var sample in byteSamples) {
-    if (isFirstElement) {
-      sum += sample * 256;
-    } else {
-      sum += sample;
-      shortSamples.add(sum - 32767);
-      sum = 0;
-    }
-    isFirstElement = !isFirstElement;
+  // This function manages the permission and ensures you're allowed to record audio
+  static Future<bool> get permissionStatus async {
+    var micStatus = await handler.Permission.microphone.request();
+    return !micStatus.isDenied;
   }
-  return shortSamples;
+
+  /// This function initializes a connection to the native backend (if not already available).
+  /// Returns a Uint8List stream representing the captured audio.
+  /// IMPORTANT - on iOS, there is no guarantee that captured audio will be encoded with the requested sampleRate/bitDepth.
+  /// You must check the sampleRate and bitDepth properties of the MicStream object *after* invoking this method (though this does not need to be before listening to the returned stream).
+  /// This is why this method returns a Uint8List - if you request a 16-bit encoding, you will need to check that
+  /// the returned stream is actually returning 16-bit data, and if so, manually cast uint8List.buffer.asUint16List()
+  /// audioSource:     The device used to capture audio. The default let's the OS decide.
+  /// sampleRate:      The amount of samples per second. More samples give better quality at the cost of higher data transmission
+  /// channelConfig:   States whether audio is mono or stereo
+  /// audioFormat:     Switch between 8- and 16-bit PCM streams
+  ///
+  static Future<Stream<Uint8List>> microphone(
+      {AudioSource audioSource: _DEFAULT_AUDIO_SOURCE,
+      int sampleRate: _DEFAULT_SAMPLE_RATE,
+      ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG,
+      AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async {
+    if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
+      throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
+    //if (!(await permissionStatus)) throw (PlatformException);
+
+    _microphone = _microphone ??
+        _microphoneEventChannel.receiveBroadcastStream([
+          audioSource.index,
+          sampleRate,
+          channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
+          audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
+        ]).cast<Uint8List>();
+
+    // sampleRate/bitDepth should be populated before any attempt to consume the stream externally.
+    // configure these as Completers and listen to the stream internally before returning
+    // these will complete only when this internal listener is called
+    StreamSubscription<Uint8List> listener;
+    var sampleRateCompleter = new Completer<double>();
+    var bitDepthCompleter = new Completer<int>();
+    var bufferSizeCompleter = new Completer<int>();
+    _sampleRate = sampleRateCompleter.future;
+    _bitDepth = bitDepthCompleter.future;
+    _bufferSize = bufferSizeCompleter.future;
+
+    listener = _microphone.listen((x) async {
+      await listener.cancel();
+      listener = null;
+      sampleRateCompleter.complete(await _microphoneMethodChannel
+          .invokeMethod("getSampleRate") as double);
+      bitDepthCompleter.complete(
+          await _microphoneMethodChannel.invokeMethod("getBitDepth") as int);
+      bufferSizeCompleter.complete(
+          await _microphoneMethodChannel.invokeMethod("getBufferSize") as int);
+    });
+
+    return _microphone;
+  }
 }

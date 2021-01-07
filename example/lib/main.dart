@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:mic_stream/mic_stream.dart';
+import 'package:path_provider/path_provider.dart';
 
 enum Command {
   start,
@@ -15,7 +17,7 @@ enum Command {
   change,
 }
 
-const AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+const AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
 
 void main() => runApp(MicStreamExampleApp());
 
@@ -26,8 +28,8 @@ class MicStreamExampleApp extends StatefulWidget {
 
 class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  Stream<List<int>> stream;
-  StreamSubscription<List<int>> listener;
+  Stream stream;
+  StreamSubscription listener;
   List<int> currentSamples;
 
   // Refreshes the Widget for every possible tick to force a rebuild of the sound wave
@@ -70,24 +72,29 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     }
   }
 
-  bool _changeListening() =>
-      !isRecording ? _startListening() : _stopListening();
+  Future<bool> _changeListening() async =>
+      !isRecording ? await _startListening() : _stopListening();
 
-  bool _startListening() {
+  Future<bool> _startListening() async {
     if (isRecording) return false;
-    stream = microphone(
+    // if this is the first time invoking the microphone() method to get the stream, we don't yet have access to the sampleRate and bitDepth properties
+    stream = await MicStream.microphone(
         audioSource: AudioSource.DEFAULT,
         sampleRate: 16000,
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
         audioFormat: AUDIO_FORMAT);
+    // after invoking the method for the first time, though, these will be available;
+    // It is not necessary to setup a listener first, the stream only needs to be returned first
+    print("Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}");
 
     setState(() {
       isRecording = true;
       startTime = DateTime.now();
     });
-
-    print("Start Listening to the microphone");
-    listener = stream.listen((samples) => currentSamples = samples);
+    listener = stream.listen((samples) async { 
+	    File((await getApplicationDocumentsDirectory()).path + "/pcmdata").writeAsBytesSync(samples, mode:FileMode.append); 
+	    currentSamples = samples; 
+    });
     return true;
   }
 
