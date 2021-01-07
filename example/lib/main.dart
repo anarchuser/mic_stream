@@ -17,7 +17,7 @@ enum Command {
   change,
 }
 
-const AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
+const AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 
 void main() => runApp(MicStreamExampleApp());
 
@@ -91,9 +91,22 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
       isRecording = true;
       startTime = DateTime.now();
     });
-    listener = stream.listen((samples) async { 
-	    File((await getApplicationDocumentsDirectory()).path + "/pcmdata").writeAsBytesSync(samples, mode:FileMode.append); 
-	    currentSamples = samples; 
+    listener = stream.listen((samples) async {
+      bool first = true;
+      currentSamples = List();
+      int tmp = 0;
+      for (int sample in samples) {
+        if (sample > 128) sample -= 255;
+        if (first) {
+          tmp = sample * 128;
+        } else {
+          tmp += sample;
+          currentSamples.add(tmp);
+          tmp = 0;
+        }
+        first = !first;
+      }
+      print(currentSamples);
     });
     return true;
   }
