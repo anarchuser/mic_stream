@@ -5,6 +5,7 @@ homepage: https://github.com/anarchuser
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
+  flutter: ">=2.0.1"
 
 module:
   androidX: true
@@ -12,7 +13,7 @@ module:
 dependencies:
   flutter:
     sdk: flutter
-  permission_handler: ^5.0.0+hotfix.3
+  permission_handler: 6.0.1+1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
@@ -29,6 +30,8 @@ flutter:
         package: com.code.aaron.micstream
         pluginClass: MicStreamPlugin
       ios:
+        pluginClass: MicStreamPlugin
+      macos:
         pluginClass: MicStreamPlugin
 
 

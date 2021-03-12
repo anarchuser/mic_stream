@@ -1,4 +1,6 @@
-import Flutter
+import Cocoa
+import FlutterMacOS
+
 //import UIKit
 import AVFoundation
 import Dispatch
@@ -9,8 +11,8 @@ enum AudioSource : Int { case DEFAULT }
 
 public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin, AVCaptureAudioDataOutputSampleBufferDelegate {
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterEventChannel(name:"aaron.code.com/mic_stream", binaryMessenger: registrar.messenger())
-        let methodChannel = FlutterMethodChannel(name: "aaron.code.com/mic_stream_method_channel", binaryMessenger: registrar.messenger())
+        let channel = FlutterEventChannel(name:"aaron.code.com/mic_stream", binaryMessenger: registrar.messenger)
+        let methodChannel = FlutterMethodChannel(name: "aaron.code.com/mic_stream_method_channel", binaryMessenger: registrar.messenger)
         let instance = SwiftMicStreamPlugin()
         channel.setStreamHandler(instance);
         registrar.addMethodCallDelegate(instance, channel: methodChannel)
@@ -49,7 +51,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
-        
+        NSLog("ON LISTEN CALLED................... *"); 
         if (isRecording) {
             return nil;
         }
@@ -84,13 +86,13 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                                   message: "At least one argument (AudioSource) must be provided ", details:nil))
                 return nil
         }
+        NSLog("Setting eventSinkn: \(config.count)");
         self.eventSink = events;
         startCapture();
         return nil;
     }
     
     func startCapture() {
-    
         if let audioCaptureDevice : AVCaptureDevice = AVCaptureDevice.default(for:AVMediaType.audio) {
 
             self.session = AVCaptureSession()
@@ -133,35 +135,35 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                    didOutput    sampleBuffer: CMSampleBuffer,
                    from         connection  : AVCaptureConnection) {	
 
-        var buffer: CMBlockBuffer? = nil
-        let numChannels:UInt32 = self.CHANNEL_CONFIG == ChannelConfig.CHANNEL_IN_MONO ? 1 : 2;
-        let audioBuffer = AudioBuffer(mNumberChannels: numChannels, mDataByteSize: 0, mData: nil)
-        var audioBufferList = AudioBufferList(mNumberBuffers: 1,
-                                          mBuffers: audioBuffer)
-        
-        CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(
-            sampleBuffer,
-            bufferListSizeNeededOut: nil,
-            bufferListOut: &audioBufferList,
-            bufferListSize: MemoryLayout<AudioBufferList>.size(ofValue: audioBufferList),
-            blockBufferAllocator: nil,
-            blockBufferMemoryAllocator: nil,
-            flags: UInt32(kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment),
-            blockBufferOut: &buffer
-        )
+				let format = CMSampleBufferGetFormatDescription(sampleBuffer)!
+				let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(format)!.pointee
 
-        if(audioBufferList.mBuffers.mData == nil) {
+				let nChannels = Int(asbd.mChannelsPerFrame) // probably 2
+				let bufferlistSize = AudioBufferList.sizeInBytes(maximumBuffers: nChannels)
+				let audioBufferList = AudioBufferList.allocate(maximumBuffers: nChannels)
+				for i in 0..<nChannels {
+						audioBufferList[i] = AudioBuffer(mNumberChannels: 0, mDataByteSize: 0, mData: nil)
+				}
+
+				var block: CMBlockBuffer?
+				let status = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer, bufferListSizeNeededOut: nil, bufferListOut: audioBufferList.unsafeMutablePointer, bufferListSize: bufferlistSize, blockBufferAllocator: nil, blockBufferMemoryAllocator: nil, flags: 0, blockBufferOut: &block)
+				if (noErr != status) {
+					NSLog("we hit an error!!!!!! \(status)")
+					return;
+				}
+
+        if(audioBufferList.unsafePointer.pointee.mBuffers.mData == nil) {
             return
         }
         
         if(self.actualSampleRate == nil) {
-            let fd = CMSampleBufferGetFormatDescription(sampleBuffer)
-            let asbd:UnsafePointer<AudioStreamBasicDescription>? = CMAudioFormatDescriptionGetStreamBasicDescription(fd!)
-            self.actualSampleRate = asbd?.pointee.mSampleRate
-            self.actualBitDepth = asbd?.pointee.mBitsPerChannel
+            //let fd = CMSampleBufferGetFormatDescription(sampleBuffer)
+            //let asbd:UnsafePointer<AudioStreamBasicDescription>? = CMAudioFormatDescriptionGetStreamBasicDescription(fd!)
+            self.actualSampleRate = asbd.mSampleRate
+            self.actualBitDepth = asbd.mBitsPerChannel
         }
         
-        let data = Data(bytesNoCopy: audioBufferList.mBuffers.mData!, count: Int(audioBufferList.mBuffers.mDataByteSize), deallocator: .none)
+        let data = Data(bytesNoCopy: audioBufferList.unsafePointer.pointee.mBuffers.mData!, count: Int(audioBufferList.unsafePointer.pointee.mBuffers.mDataByteSize), deallocator: .none)
         self.eventSink!(FlutterStandardTypedData(bytes: data))
 
     }
