@@ -38,6 +38,12 @@ In the Info.plist:
 <string>Microphone access required</string>
 ```
 
+
+For MacOS:
+
+Open macos/Runner.xcworkspace
+click Runner -> Signing & Capabilities -> Check "Audio Input"
+
 #### Example:
 
 ```
