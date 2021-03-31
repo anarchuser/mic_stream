@@ -1,6 +1,12 @@
+## 0.5.0
+
++ Add Pull Request #16, adding support for macOS
+
++ Add intensity viewer to the example app
+
 ## 0.4.0-dev
 
-* Fixed Issue #11, the plugin also works on iOS devices
+* Fix Issue #11, making the plugin work on iOS devices
 
 * Formatted Code.
 
