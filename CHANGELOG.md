@@ -1,3 +1,7 @@
+#### 0.5.0+1
+
++ Migrate to new [Android Plugin APIs](https://flutter.dev/docs/development/packages-and-plugins/plugin-api-migration)
+
 ## 0.5.0
 
 + Add Pull Request #16, adding support for macOS

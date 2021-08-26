@@ -1,6 +1,6 @@
 name: mic_stream
 description: Provides a tool to get the microphone input as PCM Stream
-version: 0.5.0
+version: 0.5.0+1
 homepage: https://github.com/anarchuser
 
 environment:
