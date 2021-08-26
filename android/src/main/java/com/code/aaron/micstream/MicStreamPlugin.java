@@ -98,6 +98,9 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
             actualSampleRate = recorder.getSampleRate();
             actualBitDepth = (recorder.getAudioFormat() == AudioFormat.ENCODING_PCM_8BIT ? 8 : 16);
 
+            // Wait until recorder is initialised
+            while (recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING);
+
             // Repeatedly push audio samples to stream
             while (record) {
 
@@ -200,7 +203,6 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
         
         recorder.startRecording();
 
-        
         // Start runnable
         record = true;
         new Thread(runnable).start();

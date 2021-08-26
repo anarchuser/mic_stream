@@ -99,7 +99,7 @@ class MicStream {
     _bitDepth = bitDepthCompleter.future;
     _bufferSize = bufferSizeCompleter.future;
 
-    print("LISTEN NOW: ${_microphone}");
+    print("LISTEN NOW: $_microphone");
     listener = _microphone.listen((x) async {
     print("listening........");
       await listener.cancel();
