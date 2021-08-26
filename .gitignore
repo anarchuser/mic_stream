@@ -4,7 +4,7 @@
 .idea
 .packages
 .pub/
-pubspec.lock
+*.lock
 
 build/
 

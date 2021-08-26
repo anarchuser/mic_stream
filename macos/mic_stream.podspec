@@ -4,14 +4,14 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mic_stream'
-  s.version          = '0.0.1'
-  s.summary          = 'A new flutter plugin project.'
+  s.version          = '0.5.0'
+  s.summary          = 'Provides a tool to get the microphone input as PCM Stream'
   s.description      = <<-DESC
-A new flutter plugin project.
+  Provides a tool to get the microphone input as PCM Stream
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/anarchuser'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { '' => '' }
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'FlutterMacOS'
