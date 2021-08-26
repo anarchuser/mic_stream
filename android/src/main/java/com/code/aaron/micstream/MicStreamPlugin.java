@@ -11,6 +11,7 @@ import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.Looper;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
@@ -24,9 +25,23 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
  */
 
 @TargetApi(16)  // Should be unnecessary, but isn't // fix build.gradle...?
-public class MicStreamPlugin implements EventChannel.StreamHandler, MethodCallHandler {
+public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandler, MethodCallHandler {
     private static final String MICROPHONE_CHANNEL_NAME = "aaron.code.com/mic_stream";
     private static final String MICROPHONE_METHOD_CHANNEL_NAME = "aaron.code.com/mic_stream_method_channel";
+
+    @Override
+    public void onAttachedToEngine(FlutterPluginBinding binding) {
+        final EventChannel microphone = new EventChannel(binding.getBinaryMessenger(), MICROPHONE_CHANNEL_NAME);
+        MicStreamPlugin instance = new MicStreamPlugin();
+        microphone.setStreamHandler(instance);
+        MethodChannel methodChannel = new MethodChannel(binding.getBinaryMessenger(), MICROPHONE_METHOD_CHANNEL_NAME);
+        methodChannel.setMethodCallHandler(instance);
+    }
+
+    @Override
+    public void onDetachedFromEngine(FlutterPluginBinding binding) {
+
+    }
 
     /**
      * Plugin registration
