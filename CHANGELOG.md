@@ -1,3 +1,7 @@
+### 0.5.2
+
+* Fixed permissions to record audio not being requested (solves [#19](https://github.com/anarchuser/mic_stream/issues/19))
+
 ### 0.5.1
 
 * Fix a bug caused by lacking synchronisation between audio stream generator and event handler
