@@ -12,11 +12,12 @@ import android.os.Handler;
 import android.os.Looper;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** MicStreamPlugin
@@ -29,29 +30,27 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     private static final String MICROPHONE_CHANNEL_NAME = "aaron.code.com/mic_stream";
     private static final String MICROPHONE_METHOD_CHANNEL_NAME = "aaron.code.com/mic_stream_method_channel";
 
+    /// New way of registering plugin
     @Override
     public void onAttachedToEngine(FlutterPluginBinding binding) {
-        final EventChannel microphone = new EventChannel(binding.getBinaryMessenger(), MICROPHONE_CHANNEL_NAME);
-        MicStreamPlugin instance = new MicStreamPlugin();
-        microphone.setStreamHandler(instance);
-        MethodChannel methodChannel = new MethodChannel(binding.getBinaryMessenger(), MICROPHONE_METHOD_CHANNEL_NAME);
-        methodChannel.setMethodCallHandler(instance);
+        registerWith(binding.getBinaryMessenger());
     }
 
+    /// Cleanup after connection loss to flutter
     @Override
     public void onDetachedFromEngine(FlutterPluginBinding binding) {
-
     }
 
-    /**
-     * Plugin registration
-     */
-    public static void registerWith(Registrar registrar) {
-        final EventChannel microphone = new EventChannel(registrar.messenger(), MICROPHONE_CHANNEL_NAME);
-        MicStreamPlugin instance = new MicStreamPlugin();
-        microphone.setStreamHandler(instance);
-        MethodChannel methodChannel = new MethodChannel(registrar.messenger(), MICROPHONE_METHOD_CHANNEL_NAME);
-        methodChannel.setMethodCallHandler(instance);
+    /// Deprecated way of registering plugin
+    public void registerWith(Registrar registrar) {
+        registerWith(registrar.messenger());
+    }
+
+    private void registerWith(BinaryMessenger messenger) {
+        final EventChannel microphone = new EventChannel(messenger, MICROPHONE_CHANNEL_NAME);
+        microphone.setStreamHandler(this);
+        MethodChannel methodChannel = new MethodChannel(messenger, MICROPHONE_METHOD_CHANNEL_NAME);
+        methodChannel.setMethodCallHandler(this);
     }
 
     private EventChannel.EventSink eventSink;
