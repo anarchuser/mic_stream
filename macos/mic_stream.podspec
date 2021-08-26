@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mic_stream'
-  s.version          = '0.5.0'
+  s.version          = '0.5.1'
   s.summary          = 'Provides a tool to get the microphone input as PCM Stream'
   s.description      = <<-DESC
   Provides a tool to get the microphone input as PCM Stream

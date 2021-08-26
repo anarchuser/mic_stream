@@ -1,3 +1,7 @@
+### 0.5.1
+
+* Fix a bug caused by lacking synchronisation between audio stream generator and event handler
+
 #### 0.5.0+1
 
 + Migrate to new [Android Plugin APIs](https://flutter.dev/docs/development/packages-and-plugins/plugin-api-migration)
