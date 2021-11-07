@@ -77,9 +77,9 @@ class MicStream {
       AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async {
     if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
       throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
-    if (!(await permissionStatus)) throw (PlatformException);
+    if (!(await permissionStatus))
+      throw (PlatformException);
 
-    print("Receive pbroadacast stream");
     _microphone = _microphone ??
         _microphoneEventChannel.receiveBroadcastStream([
           audioSource.index,
@@ -99,9 +99,7 @@ class MicStream {
     _bitDepth = bitDepthCompleter.future;
     _bufferSize = bufferSizeCompleter.future;
 
-    print("LISTEN NOW: $_microphone");
     listener = _microphone!.listen((x) async {
-    print("listening........");
       await listener!.cancel();
       listener = null;
       sampleRateCompleter.complete(await _microphoneMethodChannel
