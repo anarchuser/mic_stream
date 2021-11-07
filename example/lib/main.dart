@@ -28,22 +28,22 @@ class MicStreamExampleApp extends StatefulWidget {
 
 class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  Stream stream;
-  StreamSubscription listener;
-  List<int> currentSamples = [];
+  Stream? stream;
+  late StreamSubscription listener;
+  List<int>? currentSamples = [];
   List<int> visibleSamples = [];
-  int localMax;
-  int localMin;
+  int? localMax;
+  int? localMin;
 
 
   // Refreshes the Widget for every possible tick to force a rebuild of the sound wave
-  AnimationController controller;
+  late AnimationController controller;
 
   Color _iconColor = Colors.white;
   bool isRecording = false;
   bool memRecordingState = false;
-  bool isActive;
-  DateTime startTime;
+  late bool isActive;
+  DateTime? startTime;
 
   int page = 0;
   List state = ["SoundWavePage", "IntensityWavePage", "InformationPage"];
@@ -53,7 +53,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   void initState() {
     print("Init application");
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
     setState(() {
       initPlatformState();
     });
@@ -80,8 +80,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
       !isRecording ? await _startListening() : _stopListening();
 
 
-  int bytesPerSample;
-  int samplesPerSecond;
+  late int bytesPerSample;
+  late int samplesPerSecond;
 
   Future<bool> _startListening() async {
     print("STARRT LISTENING");
@@ -98,8 +98,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     // after invoking the method for the first time, though, these will be available;
     // It is not necessary to setup a listener first, the stream only needs to be returned first
     print("Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
-		bytesPerSample = (await MicStream.bitDepth / 8).toInt();
-    samplesPerSecond = (await MicStream.sampleRate).toInt();
+		bytesPerSample = ((await MicStream.bitDepth)! / 8).toInt();
+    samplesPerSecond = (await MicStream.sampleRate)!.toInt();
     localMax = null;
     localMin = null;
 
@@ -108,7 +108,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
       startTime = DateTime.now();
     });
     visibleSamples = [];
-    listener = stream.listen(_calculateSamples);
+    listener = stream!.listen(_calculateSamples);
     return true;
   }
 
@@ -121,7 +121,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
   void _calculateWaveSamples(samples) {
     bool first = true;
-    visibleSamples = List();
+    visibleSamples = [];
     int tmp = 0;
     for (int sample in samples) {
       if (sample > 128) sample -= 255;
@@ -133,8 +133,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
         localMax ??= visibleSamples.last;
         localMin ??= visibleSamples.last;
-        localMax = max(localMax, visibleSamples.last);
-        localMin = min(localMin, visibleSamples.last);
+        localMax = max(localMax!, visibleSamples.last);
+        localMin = min(localMin!, visibleSamples.last);
 
         tmp = 0;
       }
@@ -146,20 +146,20 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   void _calculateIntensitySamples(samples) {
     currentSamples ??= [];
     int currentSample = 0;
-    eachWithIndex(samples, (i, sample) {
+    eachWithIndex(samples, (i, int sample) {
       currentSample += sample;
       if ((i % bytesPerSample) == bytesPerSample-1) {
-        currentSamples.add(currentSample);
+        currentSamples!.add(currentSample);
         currentSample = 0;
       }
     });
 
-    if (currentSamples.length >= samplesPerSecond/10) {
-      visibleSamples.add(currentSamples.map((i) => i).toList().reduce((a, b) => a+b));
+    if (currentSamples!.length >= samplesPerSecond/10) {
+      visibleSamples.add(currentSamples!.map((i) => i).toList().reduce((a, b) => a+b));
       localMax ??= visibleSamples.last;
       localMin ??= visibleSamples.last;
-      localMax = max(localMax, visibleSamples.last);
-      localMin = min(localMin, visibleSamples.last);
+      localMax = max(localMax!, visibleSamples.last);
+      localMin = min(localMin!, visibleSamples.last);
       currentSamples = [];
       setState(() {}); 
     }
@@ -275,19 +275,19 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   void dispose() {
     listener.cancel();
     controller.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
   }
 }
 
 class WavePainter extends CustomPainter {
-  int localMax;
-  int localMin;
-  List<int> samples;
-  List<Offset> points;
-  Color color;
-  BuildContext context;
-  Size size;
+  int? localMax;
+  int? localMin;
+  List<int>? samples;
+  late List<Offset> points;
+  Color? color;
+  BuildContext? context;
+  Size? size;
 
   // Set max val possible in stream, depending on the config
   // int absMax = 255*4; //(AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) ? 127 : 32767;
@@ -296,16 +296,16 @@ class WavePainter extends CustomPainter {
   WavePainter({this.samples, this.color, this.context, this.localMax, this.localMin});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    this.size = context.size;
+  void paint(Canvas canvas, Size? size) {
+    this.size = context!.size;
     size = this.size;
 
     Paint paint = new Paint()
-      ..color = color
+      ..color = color!
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
-    if (samples.length == 0)
+    if (samples!.length == 0)
       return; 
 
 
@@ -321,13 +321,13 @@ class WavePainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldPainting) => true;
 
   // Maps a list of ints and their indices to a list of points on a cartesian grid
-  List<Offset> toPoints(List<int> samples) {
+  List<Offset> toPoints(List<int>? samples) {
     List<Offset> points = [];
     if (samples == null)
-      samples = List<int>.filled(size.width.toInt(), (0.5).toInt());
-    double pixelsPerSample = size.width/samples.length;
+      samples = List<int>.filled(size!.width.toInt(), (0.5).toInt());
+    double pixelsPerSample = size!.width/samples.length;
     for (int i = 0; i < samples.length; i++) {
-      var point = Offset(i * pixelsPerSample, 0.5 * size.height * pow((samples[i] - localMin)/(localMax - localMin), 5));
+      var point = Offset(i * pixelsPerSample, 0.5 * size!.height * pow((samples[i] - localMin!)/(localMax! - localMin!), 5));
       points.add(point);
     }
     return points;
@@ -341,7 +341,7 @@ class WavePainter extends CustomPainter {
 
 class Statistics extends StatelessWidget {
   final bool isRecording;
-  final DateTime startTime;
+  final DateTime? startTime;
 
   final String url = "https://github.com/anarchuser/mic_stream";
 
@@ -360,7 +360,7 @@ class Statistics extends StatelessWidget {
       ListTile(
           leading: Icon(Icons.access_time),
           title: Text((isRecording
-              ? DateTime.now().difference(startTime).toString()
+              ? DateTime.now().difference(startTime!).toString()
               : "Not recording"))),
     ]);
   }
