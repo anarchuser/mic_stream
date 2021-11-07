@@ -1,3 +1,7 @@
+### 0.5.3
+
+* Comply with [Null safety](https://flutter.dev/docs/null-safety)
+
 ### 0.5.2
 
 * Fixed permissions to record audio not being requested (solves [#19](https://github.com/anarchuser/mic_stream/issues/19))

@@ -40,18 +40,18 @@ class MicStream {
       MethodChannel('aaron.code.com/mic_stream_method_channel');
 
   /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream
-  static Future<double> _sampleRate;
-  static Future<double> get sampleRate => _sampleRate;
+  static Future<double>? _sampleRate;
+  static Future<double>? get sampleRate => _sampleRate;
 
   /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
-  static Future<int> _bitDepth;
-  static Future<int> get bitDepth => _bitDepth;
+  static Future<int>? _bitDepth;
+  static Future<int>? get bitDepth => _bitDepth;
 
-  static Future<int> _bufferSize;
-  static Future<int> get bufferSize => _bufferSize;
+  static Future<int>? _bufferSize;
+  static Future<int>? get bufferSize => _bufferSize;
 
   /// The configured microphone stream;
-  static Stream<Uint8List> _microphone;
+  static Stream<Uint8List>? _microphone;
 
   // This function manages the permission and ensures you're allowed to record audio
   static Future<bool> get permissionStatus async {
@@ -70,7 +70,7 @@ class MicStream {
   /// channelConfig:   States whether audio is mono or stereo
   /// audioFormat:     Switch between 8- and 16-bit PCM streams
   ///
-  static Future<Stream<Uint8List>> microphone(
+  static Future<Stream<Uint8List>?> microphone(
       {AudioSource audioSource: _DEFAULT_AUDIO_SOURCE,
       int sampleRate: _DEFAULT_SAMPLE_RATE,
       ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG,
@@ -91,7 +91,7 @@ class MicStream {
     // sampleRate/bitDepth should be populated before any attempt to consume the stream externally.
     // configure these as Completers and listen to the stream internally before returning
     // these will complete only when this internal listener is called
-    StreamSubscription<Uint8List> listener;
+    StreamSubscription<Uint8List>? listener;
     var sampleRateCompleter = new Completer<double>();
     var bitDepthCompleter = new Completer<int>();
     var bufferSizeCompleter = new Completer<int>();
@@ -100,16 +100,16 @@ class MicStream {
     _bufferSize = bufferSizeCompleter.future;
 
     print("LISTEN NOW: $_microphone");
-    listener = _microphone.listen((x) async {
+    listener = _microphone!.listen((x) async {
     print("listening........");
-      await listener.cancel();
+      await listener!.cancel();
       listener = null;
       sampleRateCompleter.complete(await _microphoneMethodChannel
-          .invokeMethod("getSampleRate") as double);
+          .invokeMethod("getSampleRate") as double?);
       bitDepthCompleter.complete(
-          await _microphoneMethodChannel.invokeMethod("getBitDepth") as int);
+          await _microphoneMethodChannel.invokeMethod("getBitDepth") as int?);
       bufferSizeCompleter.complete(
-          await _microphoneMethodChannel.invokeMethod("getBufferSize") as int);
+          await _microphoneMethodChannel.invokeMethod("getBufferSize") as int?);
     });
 
     return _microphone;
