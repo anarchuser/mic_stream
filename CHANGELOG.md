@@ -20,7 +20,9 @@
 
 + Add intensity viewer to the example app
 
-## 0.4.0-dev
+## 0.4.0
+
+BREAKING CHANGE: Now always returns a `Stream<Uint8list>`. With a 16BIT PCM config, every pair of bytes constitutes one 16Bit value. Refer to #29 for further information.
 
 * Fix Issue #11, making the plugin work on iOS devices
 
