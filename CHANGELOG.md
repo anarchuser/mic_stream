@@ -1,3 +1,9 @@
+#### 0.5.3+1
+
+* Retroactively update description for version 0.4.0
+
+* Some cleanup
+
 ### 0.5.3
 
 * Comply with [Null safety](https://flutter.dev/docs/null-safety)
