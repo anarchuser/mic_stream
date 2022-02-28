@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:flutter/services.dart';
@@ -55,6 +56,9 @@ class MicStream {
 
   // This function manages the permission and ensures you're allowed to record audio
   static Future<bool> get permissionStatus async {
+    if(Platform.isMacOS){
+      return true;
+    }
     var micStatus = await handler.Permission.microphone.request();
     return !micStatus.isDenied;
   }
