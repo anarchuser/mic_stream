@@ -1,11 +1,11 @@
 name: mic_stream
 description: MicStream is a plugin to receive raw byte streams from a device's microphone. Configurations allow for 8- and 16-bit PCM streams, and mono or stereo. Audio is returned as `Stream<Uint8list>`.
-version: 0.5.3+1
+version: 0.5.4
 homepage: https://github.com/anarchuser
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
-  flutter: ">=2.0.1"
+  flutter: ">=2.8.0"
 
 module:
   androidX: true
@@ -13,7 +13,7 @@ module:
 dependencies:
   flutter:
     sdk: flutter
-  permission_handler: ^8.2.6
+  permission_handler: ^9.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

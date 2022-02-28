@@ -1,3 +1,7 @@
+#### 0.5.4
+
+* Don't ask for permission on MacOS, since they seem to have permission anyways
+
 #### 0.5.3+1
 
 * Retroactively update description for version 0.4.0

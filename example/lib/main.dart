@@ -9,7 +9,6 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:mic_stream/mic_stream.dart';
-import 'package:path_provider/path_provider.dart';
 
 enum Command {
   start,
@@ -221,15 +220,15 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
             items: [
               BottomNavigationBarItem(
                 icon: Icon(Icons.broken_image),
-                title: Text("Sound Wave"),
+                label: "Sound Wave",
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.broken_image),
-                title: Text("Intensity Wave"),
+                label: "Intensity Wave",
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.view_list),
-                title: Text("Statistics"),
+                label: "Statistics",
               )
             ],
             backgroundColor: Colors.black26,

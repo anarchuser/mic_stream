@@ -1,4 +1,4 @@
-package com.code.aaron.mic_stream_example
+package com.aaron.mic_stream
 
 import io.flutter.embedding.android.FlutterActivity
 
