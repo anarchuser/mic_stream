@@ -25,6 +25,8 @@ enum ChannelConfig { CHANNEL_IN_MONO, CHANNEL_IN_STEREO }
 enum AudioFormat { ENCODING_PCM_8BIT, ENCODING_PCM_16BIT }
 
 class MicStream {
+  static bool _request_permission = true;
+
   static const AudioSource _DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
   static const ChannelConfig _DEFAULT_CHANNELS_CONFIG =
       ChannelConfig.CHANNEL_IN_MONO;
@@ -54,7 +56,7 @@ class MicStream {
   /// The configured microphone stream;
   static Stream<Uint8List>? _microphone;
 
-  // This function manages the permission and ensures you're allowed to record audio
+  /// This function manages the permission and ensures you're allowed to record audio
   static Future<bool> get permissionStatus async {
     if(Platform.isMacOS){
       return true;
@@ -81,8 +83,9 @@ class MicStream {
       AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async {
     if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
       throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
-    if (!(await permissionStatus))
-      throw (PlatformException);
+    if (_request_permission)
+      if (!(await permissionStatus))
+        throw (PlatformException);
 
     _microphone = _microphone ??
         _microphoneEventChannel.receiveBroadcastStream([
@@ -115,5 +118,10 @@ class MicStream {
     });
 
     return _microphone;
+  }
+
+  /// Updates flag to determine whether to request audio recording permission. Set to false to disable dialogue, set to true (default) to request permission if necessary
+  static bool shouldRequestPermission(bool request_permission) {
+    return _request_permission = request_permission;
   }
 }

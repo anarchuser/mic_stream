@@ -89,6 +89,10 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     // method to get the stream, we don't yet have access
     // to the sampleRate and bitDepth properties
     print("wait for stream");
+
+    // Default option. Set to false to disable request permission dialogue
+    MicStream.shouldRequestPermission(true);
+
     stream = await MicStream.microphone(
         audioSource: AudioSource.DEFAULT,
         sampleRate: 16000,
