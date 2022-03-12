@@ -1,3 +1,7 @@
+#### 0.5.5
+
+* Add flag to prevent permission request dialogue
+
 #### 0.5.4
 
 * Don't ask for permission on MacOS, since they seem to have permission anyways
