@@ -1,3 +1,7 @@
+#### 0.6.0
+
++ Changing microphone config now reconfigures audio recorder. To change config, recall `microphone({config})` with the new config.
+
 #### 0.5.5
 
 * Add flag to prevent permission request dialogue
