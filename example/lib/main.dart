@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:core';
-import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +32,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   List<int> visibleSamples = [];
   int? localMax;
   int? localMin;
+
+  Random rng = new Random();
 
 
   // Refreshes the Widget for every possible tick to force a rebuild of the sound wave
@@ -83,7 +84,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   late int samplesPerSecond;
 
   Future<bool> _startListening() async {
-    print("STARRT LISTENING");
+    print("START LISTENING");
     if (isRecording) return false;
     // if this is the first time invoking the microphone()
     // method to get the stream, we don't yet have access
@@ -95,13 +96,13 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
     stream = await MicStream.microphone(
         audioSource: AudioSource.DEFAULT,
-        sampleRate: 16000,
+        sampleRate: 1000 * (rng.nextInt(50) + 30),
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
         audioFormat: AUDIO_FORMAT);
     // after invoking the method for the first time, though, these will be available;
     // It is not necessary to setup a listener first, the stream only needs to be returned first
     print("Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
-		bytesPerSample = ((await MicStream.bitDepth)! / 8).toInt();
+		bytesPerSample = (await MicStream.bitDepth)! ~/ 8;
     samplesPerSecond = (await MicStream.sampleRate)!.toInt();
     localMax = null;
     localMin = null;

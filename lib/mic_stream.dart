@@ -53,8 +53,12 @@ class MicStream {
   static Future<int>? _bufferSize;
   static Future<int>? get bufferSize => _bufferSize;
 
-  /// The configured microphone stream;
+  /// The configured microphone stream and its config
   static Stream<Uint8List>? _microphone;
+  static AudioSource? __audioSource;
+  static int? __sampleRate;
+  static ChannelConfig? __channelConfig;
+  static AudioFormat? __audioFormat;
 
   /// This function manages the permission and ensures you're allowed to record audio
   static Future<bool> get permissionStatus async {
@@ -87,13 +91,24 @@ class MicStream {
       if (!(await permissionStatus))
         throw (PlatformException);
 
-    _microphone = _microphone ??
-        _microphoneEventChannel.receiveBroadcastStream([
-          audioSource.index,
-          sampleRate,
-          channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
-          audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
-        ]).cast<Uint8List>();
+    // If first time or configs have changed reinitialise audio recorder
+    if (audioSource != __audioSource ||
+        sampleRate != __sampleRate ||
+        channelConfig != __channelConfig ||
+        audioFormat != __audioFormat) {
+      //TODO: figure out whether the old stream needs to be cancelled
+      _microphone =
+          _microphoneEventChannel.receiveBroadcastStream([
+            audioSource.index,
+            sampleRate,
+            channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
+            audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
+          ]).cast<Uint8List>();
+      __audioSource = audioSource;
+      __sampleRate = sampleRate;
+      __channelConfig = channelConfig;
+      __audioFormat = audioFormat;
+    }
 
     // sampleRate/bitDepth should be populated before any attempt to consume the stream externally.
     // configure these as Completers and listen to the stream internally before returning
