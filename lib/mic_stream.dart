@@ -8,6 +8,7 @@ import 'dart:typed_data';
 // In reference to the implementation of the official sensors plugin
 // https://github.com/flutter/plugins/tree/master/packages/sensors
 
+/// Source and type of audio recorded
 enum AudioSource {
   DEFAULT,
   MIC,
@@ -21,7 +22,14 @@ enum AudioSource {
   UNPROCESSED,
   VOICE_PERFORMANCE
 }
+
+/// Mono: Records using one microphone;
+/// Stereo: Records using two spatially distant microphones (if applicable)
 enum ChannelConfig { CHANNEL_IN_MONO, CHANNEL_IN_STEREO }
+
+/// Bit depth.
+/// 8-bit means each sample consists of 1 byte
+/// 16-bit means each sample consists of 2 consecutive bytes, in little endian
 enum AudioFormat { ENCODING_PCM_8BIT, ENCODING_PCM_16BIT }
 
 class MicStream {
@@ -43,18 +51,19 @@ class MicStream {
       MethodChannel('aaron.code.com/mic_stream_method_channel');
 
   /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream
-  static Future<double>? _sampleRate;
-
   static Future<double>? get sampleRate => _sampleRate;
 
-  /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
-  static Future<int>? _bitDepth;
+  static Future<double>? _sampleRate;
 
+  /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
   static Future<int>? get bitDepth => _bitDepth;
 
-  static Future<int>? _bufferSize;
+  static Future<int>? _bitDepth;
 
+  /// The amount of recorded data, per sample, in bytes
   static Future<int>? get bufferSize => _bufferSize;
+
+  static Future<int>? _bufferSize;
 
   /// The configured microphone stream and its config
   static Stream<Uint8List>? _microphone;
