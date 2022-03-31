@@ -25,7 +25,7 @@ enum ChannelConfig { CHANNEL_IN_MONO, CHANNEL_IN_STEREO }
 enum AudioFormat { ENCODING_PCM_8BIT, ENCODING_PCM_16BIT }
 
 class MicStream {
-  static bool _request_permission = true;
+  static bool _requestPermission = true;
 
   static const AudioSource _DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
   static const ChannelConfig _DEFAULT_CHANNELS_CONFIG =
@@ -44,13 +44,16 @@ class MicStream {
 
   /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream
   static Future<double>? _sampleRate;
+
   static Future<double>? get sampleRate => _sampleRate;
 
   /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
   static Future<int>? _bitDepth;
+
   static Future<int>? get bitDepth => _bitDepth;
 
   static Future<int>? _bufferSize;
+
   static Future<int>? get bufferSize => _bufferSize;
 
   /// The configured microphone stream and its config
@@ -62,7 +65,7 @@ class MicStream {
 
   /// This function manages the permission and ensures you're allowed to record audio
   static Future<bool> get permissionStatus async {
-    if(Platform.isMacOS){
+    if (Platform.isMacOS) {
       return true;
     }
     var micStatus = await handler.Permission.microphone.request();
@@ -87,9 +90,8 @@ class MicStream {
       AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async {
     if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
       throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
-    if (_request_permission)
-      if (!(await permissionStatus))
-        throw (PlatformException);
+    if (_requestPermission) if (!(await permissionStatus))
+      throw (PlatformException);
 
     // If first time or configs have changed reinitialise audio recorder
     if (audioSource != __audioSource ||
@@ -97,13 +99,12 @@ class MicStream {
         channelConfig != __channelConfig ||
         audioFormat != __audioFormat) {
       //TODO: figure out whether the old stream needs to be cancelled
-      _microphone =
-          _microphoneEventChannel.receiveBroadcastStream([
-            audioSource.index,
-            sampleRate,
-            channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
-            audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
-          ]).cast<Uint8List>();
+      _microphone = _microphoneEventChannel.receiveBroadcastStream([
+        audioSource.index,
+        sampleRate,
+        channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
+        audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
+      ]).cast<Uint8List>();
       __audioSource = audioSource;
       __sampleRate = sampleRate;
       __channelConfig = channelConfig;
@@ -137,6 +138,6 @@ class MicStream {
 
   /// Updates flag to determine whether to request audio recording permission. Set to false to disable dialogue, set to true (default) to request permission if necessary
   static bool shouldRequestPermission(bool request_permission) {
-    return _request_permission = request_permission;
+    return _requestPermission = request_permission;
   }
 }
