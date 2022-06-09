@@ -1,12 +1,16 @@
-#### 0.6.0
+### 0.6.1
+
+* Fix issues of the Audio Recorder not always being properly reinitialised on android
+
+## 0.6.0
 
 + Changing microphone config now reconfigures audio recorder. To change config, recall `microphone({config})` with the new config.
 
-#### 0.5.5
+### 0.5.5
 
 * Add flag to prevent permission request dialogue
 
-#### 0.5.4
+### 0.5.4
 
 * Don't ask for permission on MacOS, since they seem to have permission anyways
 

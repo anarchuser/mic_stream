@@ -57,7 +57,7 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     private EventChannel.EventSink eventSink;
 
     // Audio recorder + initial values
-    private static volatile AudioRecord recorder;
+    private static volatile AudioRecord recorder = null;
 
     private int AUDIO_SOURCE = MediaRecorder.AudioSource.DEFAULT;
     private int SAMPLE_RATE = 16000;
@@ -90,16 +90,28 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
         }
     }
 
+    private void initRecorder () {
+        // Try to initialize and start the recorder
+        recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
+        if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
+            eventSink.error("-1", "PlatformError", null);
+            return;
+        }
+
+        recorder.startRecording();
+    }
+
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
+            if (recorder == null) initRecorder();
             isRecording = true;
-            
+
             actualSampleRate = recorder.getSampleRate();
             actualBitDepth = (recorder.getAudioFormat() == AudioFormat.ENCODING_PCM_8BIT ? 8 : 16);
 
             // Wait until recorder is initialised
-            while (recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING);
+            while (recorder == null || recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING);
 
             // Repeatedly push audio samples to stream
             while (record) {
@@ -194,15 +206,6 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
 
         this.eventSink = new MainThreadEventSink(eventSink);
 
-        // Try to initialize and start the recorder
-        recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
-        if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
-            eventSink.error("-1", "PlatformError", null);
-            return;
-        }
-        
-        recorder.startRecording();
-
         // Start runnable
         record = true;
         new Thread(runnable).start();
@@ -212,12 +215,13 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     public void onCancel(Object o) {
         // Stop runnable
         record = false;
+        while (isRecording);
         if(recorder != null) {
             // Stop and reset audio recorder
             recorder.stop();
             recorder.release();
-            recorder = null;
         }
+        recorder = null;
     }
 }
 

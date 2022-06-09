@@ -1,6 +1,6 @@
 name: mic_stream
-description: MicStream is a plugin to receive raw byte streams from a device's microphone. Audio is returned as `Stream<Uint8list>`.
-version: 0.6.0
+description: A plugin to receive raw byte streams from a device's microphone. Audio is returned as `Stream<Uint8list>`.
+version: 0.6.1
 homepage: https://github.com/anarchuser/mic_stream
 
 environment:
