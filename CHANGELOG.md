@@ -1,3 +1,7 @@
+### 0.6.2
+
+* Upgrade `permission_handler` to version 10.0.0 and update compileSdk to 33 accordingly
+
 ### 0.6.1
 
 * Fix issues of the Audio Recorder not always being properly reinitialised on android
