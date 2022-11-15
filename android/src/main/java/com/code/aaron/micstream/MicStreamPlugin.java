@@ -4,6 +4,7 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -60,12 +61,28 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     private static volatile AudioRecord recorder = null;
 
     private int AUDIO_SOURCE = MediaRecorder.AudioSource.DEFAULT;
-    private int SAMPLE_RATE = 16000;
+    private int SAMPLE_RATE = 8000;
     private int actualSampleRate;
     private int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
-    private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
+    private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
     private int actualBitDepth;
-    private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+    private int BUFFER_SIZE = bufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);//AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+
+    short[] buffer1000ms = new short[8000];
+    float[] floatBuffer1000ms = new float[8000];
+    short[] phaseBuffer = new short[8000];
+    float[] floatPhaseBuffer = new float[8000];
+    short[] buffer = new short[400];
+    float[] floatBuffer = new float[400];
+    short[] temp = new short[buffer1000ms.length];
+    float[] floatTemp = new float[buffer1000ms.length];
+
+    int numSamples;
+    int mTotalSamples = 0;
+    int mPhaseTotalSamples = 0;
+
+
+
 
     // Runnable management
     private volatile boolean record = false;
@@ -90,6 +107,7 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
         }
     }
 
+    @SuppressLint("MissingPermission")
     private void initRecorder () {
         // Try to initialize and start the recorder
         recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
@@ -115,16 +133,26 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
 
             // Repeatedly push audio samples to stream
             while (record) {
+                numSamples = recorder.read(buffer, 0, buffer.length);
+                for(int i=0;i<buffer.length;i++){
+                    floatBuffer[i] = lpf_x(buffer[i]);
+                }
+
+                System.arraycopy(floatBuffer,0,floatTemp,floatTemp.length-floatBuffer.length,floatBuffer.length);
+                System.arraycopy(floatBuffer1000ms,floatBuffer.length,floatTemp,0,floatBuffer1000ms.length-floatBuffer.length);
+                floatBuffer1000ms=floatTemp;
+                mTotalSamples += numSamples;
+                
 
                 // Read audio data into new byte array
-                byte[] data = new byte[BUFFER_SIZE];
-                recorder.read(data, 0, BUFFER_SIZE);
+                //byte[] data = new byte[BUFFER_SIZE];
+                //recorder.read(data, 0, BUFFER_SIZE);
 
                 // push data into stream
                 try {
-                    eventSink.success(data);
+                    eventSink.success(floatBuffer);
                 } catch (IllegalArgumentException e) {
-                    System.out.println("mic_stream: " + Arrays.hashCode(data) + " is not valid!");
+                    System.out.println("mic_stream: " + Arrays.hashCode(floatBuffer) + " is not valid!");
                     eventSink.error("-1", "Invalid Data", e);
                 }
             }
@@ -222,6 +250,46 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
             recorder.release();
         }
         recorder = null;
+    }
+
+    private int bufferSize(int sampleRateInHz, int channelConfig,int audioFormat) {
+        int buffSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig,audioFormat);
+        if (buffSize < sampleRateInHz) {
+            buffSize = sampleRateInHz;
+        }
+        return buffSize;
+    }
+
+    final double f0 = 500;
+    final double fs = 8000;
+    final double w0 = 2* Math.PI*f0/fs;
+    final double Q = 1/ Math.sqrt(2);
+    final double alpha = Math.sin(w0)/(2*Q);
+    final double b0 =  (1 - Math.cos(w0))/2;
+    final double b1 =   1 - Math.cos(w0);
+    final double b2 =  (1 - Math.cos(w0))/2;
+    final double a0 =   1 + alpha;
+    final double a1 =  -2 * Math.cos(w0);
+    final double a2 =   1 - alpha;
+    final float[] results = new float[8000];
+    final float b0a0 = (float)(b0/a0);
+    final float b1a0 = (float)(b1/a0);
+    final float b2a0 = (float)(b2/a0);
+    final float a1a0 = (float)(a1/a0);
+    final float a2a0 = (float)(a2/a0);
+
+    short x_1 = 0, x_2 = 0;
+    float y_1 = 0, y_2 = 0;
+    public float lpf_x(short x) {
+
+        float y = (b0a0)*x + (b1a0)*x_1 + (b2a0)*x_2
+                - (a1a0)*y_1 - (a2a0)*y_2;
+
+        x_2 = x_1;
+        y_2 = y_1;
+        x_1 = x;
+        y_1 = y;
+        return y;
     }
 }
 
