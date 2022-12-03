@@ -1,170 +1,115 @@
 import Cocoa
 import FlutterMacOS
 
-//import UIKit
 import AVFoundation
-import Dispatch
 
-enum AudioFormat : Int { case ENCODING_PCM_8BIT=3, ENCODING_PCM_16BIT=2 }
-enum ChannelConfig : Int { case CHANNEL_IN_MONO=16	, CHANNEL_IN_STEREO=12 }
-enum AudioSource : Int { case DEFAULT }
+/// Notes:
+/// 1. currently the only config supported is:
+///     audioSource == DEFAULT
+///     sampleRate == 48000
+///     channelConfig == MONO
+///     audioFormat == 16BIT
+/// 2. AVAudioEngine is used to acquire the audio. The previous version uses 
+///     AVCaptureAudioDataOutputSampleBufferDelegate, which records noise on
+///     my machine
+/// 3. The native audio sample is of float32 type. the samples are casted into
+///     int16 to conform with the library definition
 
-public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin, AVCaptureAudioDataOutputSampleBufferDelegate {
-    public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterEventChannel(name:"aaron.code.com/mic_stream", binaryMessenger: registrar.messenger)
-        let methodChannel = FlutterMethodChannel(name: "aaron.code.com/mic_stream_method_channel", binaryMessenger: registrar.messenger)
-        let instance = SwiftMicStreamPlugin()
-        channel.setStreamHandler(instance);
-        registrar.addMethodCallDelegate(instance, channel: methodChannel)
+
+public class SwiftMicStreamPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
+  public static func register(with registrar: FlutterPluginRegistrar) {
+    let instance = SwiftMicStreamPlugin()
+
+    let micChannel = FlutterEventChannel(name:"aaron.code.com/mic_stream", binaryMessenger: registrar.messenger)
+    micChannel.setStreamHandler(instance);
+
+    let channel = FlutterMethodChannel(name: "aaron.code.com/mic_stream_method_channel", binaryMessenger: registrar.messenger)
+    registrar.addMethodCallDelegate(instance, channel: channel)
+  }
+
+  var sampleRate: Float64? = 48000;
+
+  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    switch call.method {
+    case "getSampleRate":
+      result(self.sampleRate)
+      break;
+    case "getBitDepth":
+      result(16) // always 16
+      break;
+    case "getBufferSize":
+      result(-1) // not given, check received buffer length instead
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  var audioEngine = AVAudioEngine();
+  var isRecording = false;
+
+  public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    if (isRecording) {
+      NSLog("onListen being called while recording")
+      return FlutterError()
+    }
+    isRecording = true;
+
+    // argument check
+    let config = arguments as! [Int?];
+    NSLog("received config \(config)")
+    if (
+      config.count == 4 &&
+      config[0] == 0 &&     // audio source   must be DEFAULT
+      config[1] == 48000 && // sampleRate     must be 48000 as tested on my machine
+      config[2] == 16 &&    // channel config must be MONO
+      config[3] == 2        // audio format   must be ENCODING_PCM_16BIT
+    ) {} else {
+      NSLog("warning: configuration not supported. The only supported config is (DEFAULT, 48000, MONO, 16BIT) ")
     }
 
-    let isRecording:Bool = false;
-    var CHANNEL_CONFIG:ChannelConfig = ChannelConfig.CHANNEL_IN_MONO;
-    var SAMPLE_RATE:Int = 44100; // this is the sample rate the user wants
-    var actualSampleRate:Float64?; // this is the actual hardware sample rate the device is using
-    var AUDIO_FORMAT:AudioFormat = AudioFormat.ENCODING_PCM_16BIT; // this is the encoding/bit-depth the user wants
-    var actualBitDepth:UInt32?; // this is the actual hardware bit-depth
-    var AUDIO_SOURCE:AudioSource = AudioSource.DEFAULT;
-    var BUFFER_SIZE = 4096;
-    var eventSink:FlutterEventSink?;
-    var session : AVCaptureSession!
+
+    let input = audioEngine.inputNode
+    let busID = 0
+    let inputFormat = input.inputFormat(forBus: busID)
+
+    sampleRate = inputFormat.sampleRate
+
+
+    input.installTap(onBus: busID, bufferSize: 512, format: inputFormat) { (buffer, time) in
+      guard let channelData = buffer.floatChannelData?[0] else { return }
+
+      let floatArray = Array(UnsafeBufferPointer(start: channelData, count: Int(buffer.frameLength)))
+      //// used to findout the range of sample. it is even broader than -2 ... 2
+      // NSLog("max \(floatArray.max()!) min \(floatArray.min()!)")
+      var intArray = floatArray.map { val in 
+        // clamp the val to -2.0 ... 2.0
+        let clamped = min(max(-2.0, val), 2.0)
+        return Int16(clamped * 16383) 
+      }
+      //// use the following to get length information
+      // NSLog("\(intArray.count)")
+      // NSLog("\(buffer.frameLength)")
+
+      intArray.withUnsafeMutableBytes { unsafeMutableRawBufferPointer in
+        let nBytes = Int(buffer.frameLength) * MemoryLayout<Int16>.size
+        let unsafeMutableRawPointer = unsafeMutableRawBufferPointer.baseAddress!
+
+        let data = Data(bytesNoCopy: unsafeMutableRawPointer, count: nBytes, deallocator: .none)
+        events(FlutterStandardTypedData(bytes: data))
+      }
+    }
+
+    try! audioEngine.start()
+    return nil
+  }
+
+  public func onCancel(withArguments arguments: Any?) -> FlutterError?  {
+    NSLog("audio engine canceled");
     
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        switch call.method {
-            case "getSampleRate":
-                result(self.actualSampleRate)
-                break;
-            case "getBitDepth":
-                result(self.actualBitDepth)
-                break;
-            case "getBufferSize":
-                result(self.BUFFER_SIZE)
-                break;
-            default:
-                result(FlutterMethodNotImplemented)
-        }
-    }
-    
-    public func onCancel(withArguments arguments:Any?) -> FlutterError?  {
-        self.session?.stopRunning()
-        return nil
-    }
+    audioEngine.stop()
+    audioEngine = AVAudioEngine()
 
-    public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
-        NSLog("ON LISTEN CALLED................... *"); 
-        if (isRecording) {
-            return nil;
-        }
-    
-        let config = arguments as! [Int?];
-        // Set parameters, if available
-        print(config);
-        switch config.count {
-            case 4:
-                AUDIO_FORMAT = AudioFormat(rawValue:config[3]!)!;
-                fallthrough
-            case 3:
-                CHANNEL_CONFIG = ChannelConfig(rawValue:config[2]!)!;
-                if(CHANNEL_CONFIG != ChannelConfig.CHANNEL_IN_MONO) {
-                    events(FlutterError(code: "-3",
-                                                          message: "Currently only ChannelConfig CHANNEL_IN_MONO is supported", details:nil))
-                    return nil
-                }
-                fallthrough
-            case 2:
-                SAMPLE_RATE = config[1]!;
-                fallthrough
-            case 1:
-                AUDIO_SOURCE = AudioSource(rawValue:config[0]!)!;
-                if(AUDIO_SOURCE != AudioSource.DEFAULT) {
-                    events(FlutterError(code: "-3",
-                                        message: "Currently only default AUDIO_SOURCE (id: 0) is supported", details:nil))
-                    return nil
-                }
-            default:
-                events(FlutterError(code: "-3",
-                                  message: "At least one argument (AudioSource) must be provided ", details:nil))
-                return nil
-        }
-        NSLog("Setting eventSinkn: \(config.count)");
-        self.eventSink = events;
-        startCapture();
-        return nil;
-    }
-    
-    func startCapture() {
-        if let audioCaptureDevice : AVCaptureDevice = AVCaptureDevice.default(for:AVMediaType.audio) {
-
-            self.session = AVCaptureSession()
-            do {
-                try audioCaptureDevice.lockForConfiguration()
-                
-                let audioInput = try AVCaptureDeviceInput(device: audioCaptureDevice)
-                audioCaptureDevice.unlockForConfiguration()
-
-                if(self.session.canAddInput(audioInput)){
-                    self.session.addInput(audioInput)
-                }
-                
-                
-                //let numChannels = CHANNEL_CONFIG == ChannelConfig.CHANNEL_IN_MONO ? 1 : 2
-                // setting the preferred sample rate on AVAudioSession  doesn't magically change the sample rate for our AVCaptureSession
-                // try AVAudioSession.sharedInstance().setPreferredSampleRate(Double(SAMPLE_RATE))
- 
-                // neither does setting AVLinearPCMBitDepthKey on audioOutput.audioSettings (unavailable on iOS)
-                // 99% sure it's not possible to set streaming sample rate/bitrate
-                // try AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(numChannels)
-                let audioOutput = AVCaptureAudioDataOutput()
-                audioOutput.setSampleBufferDelegate(self, queue: DispatchQueue.global())
-              
-                if(self.session.canAddOutput(audioOutput)){
-                    self.session.addOutput(audioOutput)
-                }
-
-                DispatchQueue.main.async {
-                    self.session.startRunning()
-                }
-            } catch let e {
-                self.eventSink!(FlutterError(code: "-3",
-                             message: "Error encountered starting audio capture, see details for more information.", details:e))
-            }
-        }
-    }
-    
-    public func captureOutput(_            output      : AVCaptureOutput,
-                   didOutput    sampleBuffer: CMSampleBuffer,
-                   from         connection  : AVCaptureConnection) {	
-
-				let format = CMSampleBufferGetFormatDescription(sampleBuffer)!
-				let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(format)!.pointee
-
-				let nChannels = Int(asbd.mChannelsPerFrame) // probably 2
-				let bufferlistSize = AudioBufferList.sizeInBytes(maximumBuffers: nChannels)
-				let audioBufferList = AudioBufferList.allocate(maximumBuffers: nChannels)
-				for i in 0..<nChannels {
-						audioBufferList[i] = AudioBuffer(mNumberChannels: 0, mDataByteSize: 0, mData: nil)
-				}
-
-				var block: CMBlockBuffer?
-				let status = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer, bufferListSizeNeededOut: nil, bufferListOut: audioBufferList.unsafeMutablePointer, bufferListSize: bufferlistSize, blockBufferAllocator: nil, blockBufferMemoryAllocator: nil, flags: 0, blockBufferOut: &block)
-				if (noErr != status) {
-					NSLog("we hit an error!!!!!! \(status)")
-					return;
-				}
-
-        if(audioBufferList.unsafePointer.pointee.mBuffers.mData == nil) {
-            return
-        }
-        
-        if(self.actualSampleRate == nil) {
-            //let fd = CMSampleBufferGetFormatDescription(sampleBuffer)
-            //let asbd:UnsafePointer<AudioStreamBasicDescription>? = CMAudioFormatDescriptionGetStreamBasicDescription(fd!)
-            self.actualSampleRate = asbd.mSampleRate
-            self.actualBitDepth = asbd.mBitsPerChannel
-        }
-        
-        let data = Data(bytesNoCopy: audioBufferList.unsafePointer.pointee.mBuffers.mData!, count: Int(audioBufferList.unsafePointer.pointee.mBuffers.mDataByteSize), deallocator: .none)
-        self.eventSink!(FlutterStandardTypedData(bytes: data))
-
-    }
+    isRecording = false;
+    return nil
+  }
 }
