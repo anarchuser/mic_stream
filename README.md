@@ -5,7 +5,9 @@ Provides a tool to get the microphone input as 8 or 16 bit PCM Stream.
 
 ## About mic_stream:
 
-As Flutter still lacks some functionality, this plugin aims to provide the possibility to easily get an audio stream from the microphone, using a simple java and swift implementation.
+As Flutter still lacks some functionality, this plugin aims to provide the possibility to easily get an audio stream from the microphone of mobile devices.
+
+**NOTE: If you receive white noise under MacOS, try version `0.6.3-dev` instead.**
 
 ## How to use:
 

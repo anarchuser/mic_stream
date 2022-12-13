@@ -1,3 +1,7 @@
+## 0.6.3-dev
+
+* Switch to a different MacOS backend to resolve issues of white noise (#49)
+
 ### 0.6.2
 
 * Upgrade `permission_handler` to version 10.0.0 and update compileSdk to 33 accordingly
