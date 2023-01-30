@@ -1,4 +1,4 @@
-## 0.6.3-dev
+## 0.6.3
 
 * Switch to a different MacOS backend to resolve issues of white noise (#49)
 
