@@ -1,3 +1,8 @@
+## 0.6.4
+
+* Change interface from having const default values to taking nullable parameters (#54)
+* Make default values publicly accessible
+
 ## 0.6.3
 
 * Switch to a different MacOS backend to resolve issues of white noise (#49)
