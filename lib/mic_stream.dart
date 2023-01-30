@@ -35,12 +35,12 @@ enum AudioFormat { ENCODING_PCM_8BIT, ENCODING_PCM_16BIT }
 class MicStream {
   static bool _requestPermission = true;
 
-  static const AudioSource _DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
-  static const ChannelConfig _DEFAULT_CHANNELS_CONFIG =
+  static const AudioSource DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
+  static const ChannelConfig DEFAULT_CHANNELS_CONFIG =
       ChannelConfig.CHANNEL_IN_MONO;
-  static const AudioFormat _DEFAULT_AUDIO_FORMAT =
+  static const AudioFormat DEFAULT_AUDIO_FORMAT =
       AudioFormat.ENCODING_PCM_8BIT;
-  static const int _DEFAULT_SAMPLE_RATE = 16000;
+  static const int DEFAULT_SAMPLE_RATE = 16000;
 
   static const int _MIN_SAMPLE_RATE = 1;
   static const int _MAX_SAMPLE_RATE = 100000;
@@ -93,10 +93,16 @@ class MicStream {
   /// audioFormat:     Switch between 8- and 16-bit PCM streams
   ///
   static Future<Stream<Uint8List>?> microphone(
-      {AudioSource audioSource: _DEFAULT_AUDIO_SOURCE,
-      int sampleRate: _DEFAULT_SAMPLE_RATE,
-      ChannelConfig channelConfig: _DEFAULT_CHANNELS_CONFIG,
-      AudioFormat audioFormat: _DEFAULT_AUDIO_FORMAT}) async {
+      {AudioSource? audioSource,
+      int? sampleRate,
+      ChannelConfig? channelConfig,
+      AudioFormat? audioFormat}) async {
+
+    audioSource ??= DEFAULT_AUDIO_SOURCE;
+    sampleRate ??= DEFAULT_SAMPLE_RATE;
+    channelConfig ??= DEFAULT_CHANNELS_CONFIG;
+    audioFormat ??= DEFAULT_AUDIO_FORMAT;
+
     if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
       throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
     if (_requestPermission) if (!(await permissionStatus))
