@@ -38,8 +38,7 @@ class MicStream {
   static const AudioSource DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
   static const ChannelConfig DEFAULT_CHANNELS_CONFIG =
       ChannelConfig.CHANNEL_IN_MONO;
-  static const AudioFormat DEFAULT_AUDIO_FORMAT =
-      AudioFormat.ENCODING_PCM_8BIT;
+  static const AudioFormat DEFAULT_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
   static const int DEFAULT_SAMPLE_RATE = 16000;
 
   static const int _MIN_SAMPLE_RATE = 1;
@@ -97,7 +96,6 @@ class MicStream {
       int? sampleRate,
       ChannelConfig? channelConfig,
       AudioFormat? audioFormat}) async {
-
     audioSource ??= DEFAULT_AUDIO_SOURCE;
     sampleRate ??= DEFAULT_SAMPLE_RATE;
     channelConfig ??= DEFAULT_CHANNELS_CONFIG;
@@ -114,6 +112,7 @@ class MicStream {
         channelConfig != __channelConfig ||
         audioFormat != __audioFormat) {
       //TODO: figure out whether the old stream needs to be cancelled
+      print('this is sample rate $sampleRate');
       _microphone = _microphoneEventChannel.receiveBroadcastStream([
         audioSource.index,
         sampleRate,

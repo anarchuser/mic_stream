@@ -2,7 +2,7 @@ import Flutter
 //import UIKit
 import AVFoundation
 import Dispatch
-
+import AVFAudio
 enum AudioFormat : Int { case ENCODING_PCM_8BIT=3, ENCODING_PCM_16BIT=2 }
 enum ChannelConfig : Int { case CHANNEL_IN_MONO=16	, CHANNEL_IN_STEREO=12 }
 enum AudioSource : Int { case DEFAULT }
@@ -26,17 +26,18 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     var BUFFER_SIZE = 4096;
     var eventSink:FlutterEventSink?;
     var session : AVCaptureSession!
+    var audioSession: AVAudioSession!
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
             case "getSampleRate":
-                result(self.actualSampleRate)
+                result(self.actualSampleRate)//call the actual sample rate
                 break;
             case "getBitDepth":
                 result(self.actualBitDepth)
                 break;
             case "getBufferSize":
-                result(self.BUFFER_SIZE)
+                result(Int(self.audioSession.ioBufferDuration*self.audioSession.sampleRate))//calculate the true buffer size
                 break;
             default:
                 result(FlutterMethodNotImplemented)
@@ -56,10 +57,15 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     
         let config = arguments as! [Int?];
         // Set parameters, if available
-        print(config);
+        //print("this is config: \(config)")
         switch config.count {
             case 4:
                 AUDIO_FORMAT = AudioFormat(rawValue:config[3]!)!;
+                if(AUDIO_FORMAT != AudioFormat.ENCODING_PCM_16BIT) {
+                    events(FlutterError(code: "-3",
+                                                          message: "Currently only AudioFormat ENCODING_PCM_16BIT is supported", details:nil))
+                    return nil
+                }
                 fallthrough
             case 3:
                 CHANNEL_CONFIG = ChannelConfig(rawValue:config[2]!)!;
@@ -71,6 +77,11 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 fallthrough
             case 2:
                 SAMPLE_RATE = config[1]!;
+                if(SAMPLE_RATE<8000 || SAMPLE_RATE>48000) {
+                    events(FlutterError(code: "-3",
+                                                          message: "iPhone only sample rates between 8000 and 48000 are supported", details:nil))
+                    return nil
+                }
                 fallthrough
             case 1:
                 AUDIO_SOURCE = AudioSource(rawValue:config[0]!)!;
@@ -94,24 +105,50 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
         if let audioCaptureDevice : AVCaptureDevice = AVCaptureDevice.default(for:AVMediaType.audio) {
 
             self.session = AVCaptureSession()
+            self.audioSession=AVAudioSession.sharedInstance()
             do {
+                //magic word
+                //This will allow developers to specify sample rates, etc.
+                try session.automaticallyConfiguresApplicationAudioSession = false
+                
                 try audioCaptureDevice.lockForConfiguration()
+
+                try audioSession.setCategory(AVAudioSession.Category.record,mode: .measurement)
+
+                try audioSession.setPreferredSampleRate(Double(SAMPLE_RATE))
+
+                //Calculate the time required for BufferSize
+                let preferredIOBufferDuration: TimeInterval = 1.0 / audioSession.sampleRate * Double(self.BUFFER_SIZE)
+                try audioSession.setPreferredIOBufferDuration(Double(preferredIOBufferDuration))
+
+                //it does not seem like this is working
+                //let numChannels = CHANNEL_CONFIG == ChannelConfig.CHANNEL_IN_MONO ? 1 : 2
+                //try audioSession.setPreferredInputNumberOfChannels(1)
+
+
+                // print("this is the session sample rate: \(audioSession.sampleRate)")
+                // print("this is the session preferred sample rate: \(audioSession.preferredSampleRate)")
+                // print("this is the session preferred IOBufferDuration: \(audioSession.preferredIOBufferDuration)")
+                // print("this is the session IOBufferDuration: \(audioSession.ioBufferDuration)")
+                // print("this is the session preferred input number of channels: \(audioSession.preferredInputNumberOfChannels)")
+                // print("this is the session input number of channels: \(audioSession.inputNumberOfChannels)")
+
+                try audioSession.setActive(true)
+                
                 
                 let audioInput = try AVCaptureDeviceInput(device: audioCaptureDevice)
+                
+                
                 audioCaptureDevice.unlockForConfiguration()
 
                 if(self.session.canAddInput(audioInput)){
                     self.session.addInput(audioInput)
                 }
                 
-                
-                //let numChannels = CHANNEL_CONFIG == ChannelConfig.CHANNEL_IN_MONO ? 1 : 2
-                // setting the preferred sample rate on AVAudioSession  doesn't magically change the sample rate for our AVCaptureSession
-                // try AVAudioSession.sharedInstance().setPreferredSampleRate(Double(SAMPLE_RATE))
- 
                 // neither does setting AVLinearPCMBitDepthKey on audioOutput.audioSettings (unavailable on iOS)
                 // 99% sure it's not possible to set streaming sample rate/bitrate
                 // try AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(numChannels)
+                
                 let audioOutput = AVCaptureAudioDataOutput()
                 audioOutput.setSampleBufferDelegate(self, queue: DispatchQueue.global())
               
@@ -123,6 +160,9 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                     self.session.startRunning()
                 }
             } catch let e {
+                // print("Error encountered starting audio capture, see details for more information.")
+                // print(e)
+                
                 self.eventSink!(FlutterError(code: "-3",
                              message: "Error encountered starting audio capture, see details for more information.", details:e))
             }
@@ -160,8 +200,10 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
             self.actualSampleRate = asbd?.pointee.mSampleRate
             self.actualBitDepth = asbd?.pointee.mBitsPerChannel
         }
-        
+        //print(actualSampleRate)
+        //print(audioSession.sampleRate)
         let data = Data(bytesNoCopy: audioBufferList.mBuffers.mData!, count: Int(audioBufferList.mBuffers.mDataByteSize), deallocator: .none)
+        
         self.eventSink!(FlutterStandardTypedData(bytes: data))
 
     }
