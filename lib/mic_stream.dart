@@ -112,7 +112,6 @@ class MicStream {
         channelConfig != __channelConfig ||
         audioFormat != __audioFormat) {
       //TODO: figure out whether the old stream needs to be cancelled
-      print('this is sample rate $sampleRate');
       _microphone = _microphoneEventChannel.receiveBroadcastStream([
         audioSource.index,
         sampleRate,
