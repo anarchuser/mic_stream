@@ -1,3 +1,6 @@
+## 0.6.5
+* Fixed sampleRate settings to be adapted to iOS
+
 ## 0.6.4
 
 * Change interface from having const default values to taking nullable parameters (#54)
