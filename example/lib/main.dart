@@ -2,10 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:core';
 
-import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/animation.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:mic_stream/mic_stream.dart';
 
