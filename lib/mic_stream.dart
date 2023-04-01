@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:flutter/services.dart';
-import 'dart:typed_data';
 
 // In reference to the implementation of the official sensors plugin
 // https://github.com/flutter/plugins/tree/master/packages/sensors
@@ -38,8 +37,7 @@ class MicStream {
   static const AudioSource DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
   static const ChannelConfig DEFAULT_CHANNELS_CONFIG =
       ChannelConfig.CHANNEL_IN_MONO;
-  static const AudioFormat DEFAULT_AUDIO_FORMAT =
-      AudioFormat.ENCODING_PCM_8BIT;
+  static const AudioFormat DEFAULT_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
   static const int DEFAULT_SAMPLE_RATE = 16000;
 
   static const int _MIN_SAMPLE_RATE = 1;
@@ -97,7 +95,6 @@ class MicStream {
       int? sampleRate,
       ChannelConfig? channelConfig,
       AudioFormat? audioFormat}) async {
-
     audioSource ??= DEFAULT_AUDIO_SOURCE;
     sampleRate ??= DEFAULT_SAMPLE_RATE;
     channelConfig ??= DEFAULT_CHANNELS_CONFIG;
@@ -152,7 +149,7 @@ class MicStream {
   }
 
   /// Updates flag to determine whether to request audio recording permission. Set to false to disable dialogue, set to true (default) to request permission if necessary
-  static bool shouldRequestPermission(bool request_permission) {
-    return _requestPermission = request_permission;
+  static bool shouldRequestPermission(bool requestPermission) {
+    return _requestPermission = requestPermission;
   }
 }

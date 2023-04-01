@@ -2,10 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:core';
 
-import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/animation.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:mic_stream/mic_stream.dart';
 
@@ -35,7 +32,6 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
   Random rng = new Random();
 
-
   // Refreshes the Widget for every possible tick to force a rebuild of the sound wave
   late AnimationController controller;
 
@@ -47,7 +43,6 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
   int page = 0;
   List state = ["SoundWavePage", "IntensityWavePage", "InformationPage"];
-
 
   @override
   void initState() {
@@ -79,7 +74,6 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   Future<bool> _changeListening() async =>
       !isRecording ? await _startListening() : _stopListening();
 
-
   late int bytesPerSample;
   late int samplesPerSecond;
 
@@ -96,13 +90,15 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
 
     stream = await MicStream.microphone(
         audioSource: AudioSource.DEFAULT,
-        sampleRate: 1000 * (rng.nextInt(50) + 30),
+        // sampleRate: 1000 * (rng.nextInt(50) + 30),
+        sampleRate: 48000,
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
         audioFormat: AUDIO_FORMAT);
     // after invoking the method for the first time, though, these will be available;
     // It is not necessary to setup a listener first, the stream only needs to be returned first
-    print("Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
-		bytesPerSample = (await MicStream.bitDepth)! ~/ 8;
+    print(
+        "Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
+    bytesPerSample = (await MicStream.bitDepth)! ~/ 8;
     samplesPerSecond = (await MicStream.sampleRate)!.toInt();
     localMax = null;
     localMin = null;
@@ -117,10 +113,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   }
 
   void _calculateSamples(samples) {
-    if (page == 0)
-      _calculateWaveSamples(samples);
-    else if (page == 1)
-      _calculateIntensitySamples(samples);
+    if (page == 0) _calculateWaveSamples(samples);
+    else if (page == 1) _calculateIntensitySamples(samples);
   }
 
   void _calculateWaveSamples(samples) {
@@ -144,7 +138,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
       }
       first = !first;
     }
-    print(visibleSamples);
+    print(visibleSamples.length);
   }
 
   void _calculateIntensitySamples(samples) {
@@ -152,20 +146,21 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     int currentSample = 0;
     eachWithIndex(samples, (i, int sample) {
       currentSample += sample;
-      if ((i % bytesPerSample) == bytesPerSample-1) {
+      if ((i % bytesPerSample) == bytesPerSample - 1) {
         currentSamples!.add(currentSample);
         currentSample = 0;
       }
     });
 
-    if (currentSamples!.length >= samplesPerSecond/10) {
-      visibleSamples.add(currentSamples!.map((i) => i).toList().reduce((a, b) => a+b));
+    if (currentSamples!.length >= samplesPerSecond / 10) {
+      visibleSamples
+          .add(currentSamples!.map((i) => i).toList().reduce((a, b) => a + b));
       localMax ??= visibleSamples.last;
       localMin ??= visibleSamples.last;
       localMax = max(localMax!, visibleSamples.last);
       localMin = min(localMin!, visibleSamples.last);
       currentSamples = [];
-      setState(() {}); 
+      setState(() {});
     }
   }
 
@@ -195,8 +190,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
             if (isRecording) setState(() {});
           })
           ..addStatusListener((status) {
-            if (status == AnimationStatus.completed)
-              controller.reverse();
+            if (status == AnimationStatus.completed) controller.reverse();
             else if (status == AnimationStatus.dismissed) controller.forward();
           })
           ..forward();
@@ -297,7 +291,8 @@ class WavePainter extends CustomPainter {
   // int absMax = 255*4; //(AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) ? 127 : 32767;
   // int absMin; //(AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) ? 127 : 32767;
 
-  WavePainter({this.samples, this.color, this.context, this.localMax, this.localMin});
+  WavePainter(
+      {this.samples, this.color, this.context, this.localMax, this.localMin});
 
   @override
   void paint(Canvas canvas, Size? size) {
@@ -309,9 +304,7 @@ class WavePainter extends CustomPainter {
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
-    if (samples!.length == 0)
-      return; 
-
+    if (samples!.length == 0) return;
 
     points = toPoints(samples);
 
@@ -327,18 +320,22 @@ class WavePainter extends CustomPainter {
   // Maps a list of ints and their indices to a list of points on a cartesian grid
   List<Offset> toPoints(List<int>? samples) {
     List<Offset> points = [];
-    if (samples == null)
-      samples = List<int>.filled(size!.width.toInt(), (0.5).toInt());
-    double pixelsPerSample = size!.width/samples.length;
+    if (samples == null) samples = List<int>.filled(size!.width.toInt(), (0.5).toInt());
+    double pixelsPerSample = size!.width / samples.length;
     for (int i = 0; i < samples.length; i++) {
-      var point = Offset(i * pixelsPerSample, 0.5 * size!.height * pow((samples[i] - localMin!)/(localMax! - localMin!), 5));
+      var point = Offset(
+          i * pixelsPerSample,
+          0.5 *
+              size!.height *
+              pow((samples[i] - localMin!) / (localMax! - localMin!), 5));
       points.add(point);
     }
     return points;
   }
 
   double project(int val, int max, double height) {
-    double waveHeight = (max == 0) ? val.toDouble() : (val / max) * 0.5 * height;
+    double waveHeight =
+        (max == 0) ? val.toDouble() : (val / max) * 0.5 * height;
     return waveHeight + 0.5 * height;
   }
 }
@@ -370,7 +367,6 @@ class Statistics extends StatelessWidget {
   }
 }
 
-
 Iterable<T> eachWithIndex<E, T>(
     Iterable<T> items, E Function(int index, T item) f) {
   var index = 0;
@@ -382,4 +378,3 @@ Iterable<T> eachWithIndex<E, T>(
 
   return items;
 }
-
