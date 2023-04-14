@@ -88,7 +88,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     // Default option. Set to false to disable request permission dialogue
     MicStream.shouldRequestPermission(true);
 
-    stream = await MicStream.microphone(
+    stream = MicStream.microphone(
         audioSource: AudioSource.DEFAULT,
         // sampleRate: 1000 * (rng.nextInt(50) + 30),
         sampleRate: 48000,
@@ -98,17 +98,17 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     // It is not necessary to setup a listener first, the stream only needs to be returned first
     print(
         "Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
-    bytesPerSample = (await MicStream.bitDepth)! ~/ 8;
-    samplesPerSecond = (await MicStream.sampleRate)!.toInt();
     localMax = null;
     localMin = null;
 
+    visibleSamples = [];
+    listener = stream!.listen(_calculateSamples);
+    bytesPerSample = (await MicStream.bitDepth)! ~/ 8;
+    samplesPerSecond = (await MicStream.sampleRate)!.toInt();
     setState(() {
       isRecording = true;
       startTime = DateTime.now();
     });
-    visibleSamples = [];
-    listener = stream!.listen(_calculateSamples);
     return true;
   }
 
