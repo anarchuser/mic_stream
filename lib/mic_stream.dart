@@ -110,7 +110,7 @@ class MicStream {
 
     return initStream.asyncExpand((grantedPermission) {
       if (!grantedPermission) {
-        throw throw Exception('Microphone permission is not granted');
+        throw Exception('Microphone permission is not granted');
       }
       return _setupMicStream(
         audioSource!,
