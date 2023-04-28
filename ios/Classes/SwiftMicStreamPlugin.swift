@@ -27,6 +27,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     var eventSink:FlutterEventSink?;
     var session : AVCaptureSession!
     var audioSession: AVAudioSession!
+    var oldAudioSessionCategory: AVAudioSession.Category?
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
@@ -46,6 +47,9 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     
     public func onCancel(withArguments arguments:Any?) -> FlutterError?  {
         self.session?.stopRunning()
+        if let category = oldAudioSessionCategory {
+            try? audioSession.setCategory(category)
+        }
         return nil
     }
 
@@ -113,6 +117,8 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 
                 try audioCaptureDevice.lockForConfiguration()
 
+                oldAudioSessionCategory = audioSession.category
+                
                 try audioSession.setCategory(AVAudioSession.Category.record,mode: .measurement)
 
                 try audioSession.setPreferredSampleRate(Double(SAMPLE_RATE))
