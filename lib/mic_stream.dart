@@ -271,6 +271,10 @@ class MicStream {
     return stereo;
   }
 
+  static void clean() {
+    _microphoneMethodChannel.invokeMethod("clean");
+  }
+
   /// Updates flag to determine whether to request audio recording permission. Set to false to disable dialogue, set to true (default) to request permission if necessary
   static bool shouldRequestPermission(bool requestPermission) {
     return _requestPermission = requestPermission;

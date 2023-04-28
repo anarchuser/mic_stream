@@ -27,7 +27,8 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     var eventSink:FlutterEventSink?;
     var session : AVCaptureSession!
     var audioSession: AVAudioSession!
-    
+    var oldAudioSessionCategory: AVAudioSession.Category?
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
             case "getSampleRate":
@@ -39,6 +40,9 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
             case "getBufferSize":
                 result(Int(self.audioSession.ioBufferDuration*self.audioSession.sampleRate))//calculate the true buffer size
                 break;
+            case "clean":
+                onCancel(withArguments: nil)
+                break;
             default:
                 result(FlutterMethodNotImplemented)
         }
@@ -46,53 +50,48 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     
     public func onCancel(withArguments arguments:Any?) -> FlutterError?  {
         self.session?.stopRunning()
+        if let category = oldAudioSessionCategory {
+            try? audioSession.setCategory(category)
+        }
         return nil
     }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
-        
         if (isRecording) {
             return nil;
         }
     
-        let config = arguments as! [Int?];
-        // Set parameters, if available
-        //print("this is config: \(config)")
+        let config = arguments as! [Int?]
         switch config.count {
             case 4:
                 AUDIO_FORMAT = AudioFormat(rawValue:config[3]!)!;
                 if(AUDIO_FORMAT != AudioFormat.ENCODING_PCM_16BIT) {
-                    events(FlutterError(code: "-3",
-                                                          message: "Currently only AudioFormat ENCODING_PCM_16BIT is supported", details:nil))
+                    events(FlutterError(code: "-3", message: "Currently only AudioFormat ENCODING_PCM_16BIT is supported", details:nil))
                     return nil
                 }
                 fallthrough
             case 3:
                 CHANNEL_CONFIG = ChannelConfig(rawValue:config[2]!)!;
                 if(CHANNEL_CONFIG != ChannelConfig.CHANNEL_IN_MONO) {
-                    events(FlutterError(code: "-3",
-                                                          message: "Currently only ChannelConfig CHANNEL_IN_MONO is supported", details:nil))
+                    events(FlutterError(code: "-3", message: "Currently only ChannelConfig CHANNEL_IN_MONO is supported", details:nil))
                     return nil
                 }
                 fallthrough
             case 2:
                 SAMPLE_RATE = config[1]!;
                 if(SAMPLE_RATE<8000 || SAMPLE_RATE>48000) {
-                    events(FlutterError(code: "-3",
-                                                          message: "iPhone only sample rates between 8000 and 48000 are supported", details:nil))
+                    events(FlutterError(code: "-3", message: "iPhone only sample rates between 8000 and 48000 are supported", details:nil))
                     return nil
                 }
                 fallthrough
             case 1:
                 AUDIO_SOURCE = AudioSource(rawValue:config[0]!)!;
                 if(AUDIO_SOURCE != AudioSource.DEFAULT) {
-                    events(FlutterError(code: "-3",
-                                        message: "Currently only default AUDIO_SOURCE (id: 0) is supported", details:nil))
+                    events(FlutterError(code: "-3", message: "Currently only default AUDIO_SOURCE (id: 0) is supported", details:nil))
                     return nil
                 }
             default:
-                events(FlutterError(code: "-3",
-                                  message: "At least one argument (AudioSource) must be provided ", details:nil))
+                events(FlutterError(code: "-3", message: "At least one argument (AudioSource) must be provided ", details:nil))
                 return nil
         }
         self.eventSink = events;
@@ -105,13 +104,15 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
         if let audioCaptureDevice : AVCaptureDevice = AVCaptureDevice.default(for:AVMediaType.audio) {
 
             self.session = AVCaptureSession()
-            self.audioSession=AVAudioSession.sharedInstance()
+            self.audioSession = AVAudioSession.sharedInstance()
             do {
                 //magic word
                 //This will allow developers to specify sample rates, etc.
                 try session.automaticallyConfiguresApplicationAudioSession = false
                 
                 try audioCaptureDevice.lockForConfiguration()
+
+                oldAudioSessionCategory = audioSession.category
 
                 try audioSession.setCategory(AVAudioSession.Category.record,mode: .measurement)
 
@@ -163,8 +164,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 // print("Error encountered starting audio capture, see details for more information.")
                 // print(e)
                 
-                self.eventSink!(FlutterError(code: "-3",
-                             message: "Error encountered starting audio capture, see details for more information.", details:e))
+                self.eventSink!(FlutterError(code: "-3", message: "Error encountered starting audio capture, see details for more information.", details:e))
             }
         }
     }
@@ -205,6 +205,5 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
         let data = Data(bytesNoCopy: audioBufferList.mBuffers.mData!, count: Int(audioBufferList.mBuffers.mDataByteSize), deallocator: .none)
         
         self.eventSink!(FlutterStandardTypedData(bytes: data))
-
     }
 }
