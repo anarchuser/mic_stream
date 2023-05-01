@@ -1,3 +1,8 @@
+## 0.7.0-dev
+
+### !!! This version changes the API !!!
+* Change return value of `microphone(...)` from `Future<Stream<Uint8List>?>` to `Stream<Uint8List>`
+
 ## 0.6.5
 * Fixed sampleRate settings to be adapted to iOS
 

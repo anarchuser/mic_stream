@@ -1,4 +1,4 @@
-# mic_stream: 0.6.5
+# mic_stream: 0.7.0-dev
 
 [Flutter Plugin]
 Provides a tool to get the microphone input as 8 or 16 bit PCM Stream.
@@ -11,14 +11,23 @@ As Flutter still lacks some functionality, this plugin aims to provide the possi
 
 The plugin provides one method:
 
-`Future<Stream<UInt8List>> MicStream.microphone({options})`
+`Stream<UInt8List> MicStream.microphone({options})`
 
 Listening to this stream starts the audio recorder
 while cancelling the subscription stops the stream.
 
+Available options are as follows:
+
+```dart
+audioSource: AudioSource      // The microphone you want to record from
+sampleRate: int               // The amount of data points to record per second
+channelConfig: ChannelConfig  // Mono or Stereo
+audioFormat: AudioFormat      // 8 bit PCM or 16 bit PCM. Other formats are not yet supported
+```
+
 The plugin also provides information about some properties:
 
-```
+```dart
 Future<double> sampleRate = await MicStream.sampleRate;
 Future<int> bitDepth = await MicStream.bitDepth;
 Future<int> bufferSize = await MicStream.bufferSize;
