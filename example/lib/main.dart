@@ -48,7 +48,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   void initState() {
     print("Init application");
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     setState(() {
       initPlatformState();
     });
@@ -273,7 +273,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   void dispose() {
     listener.cancel();
     controller.dispose();
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }

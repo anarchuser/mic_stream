@@ -1,15 +1,16 @@
 package com.code.aaron.micstream;
 
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import android.annotation.TargetApi;
+import android.annotation.SuppressLint;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.Looper;
+
+import androidx.annotation.NonNull;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
@@ -25,7 +26,6 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
  *  and the example of the streams_channel (v0.2.2) plugin
  */
 
-@TargetApi(16)  // Should be unnecessary, but isn't // fix build.gradle...?
 public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandler, MethodCallHandler {
     private static final String MICROPHONE_CHANNEL_NAME = "aaron.code.com/mic_stream";
     private static final String MICROPHONE_METHOD_CHANNEL_NAME = "aaron.code.com/mic_stream_method_channel";
@@ -38,7 +38,7 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
 
     /// Cleanup after connection loss to flutter
     @Override
-    public void onDetachedFromEngine(FlutterPluginBinding binding) {
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         onCancel(null);
     }
 
@@ -73,10 +73,10 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
 
     // Method channel handlers to get sample rate / bit-depth
     @Override
-    public void onMethodCall(MethodCall call, Result result) {
+    public void onMethodCall(MethodCall call, @NonNull Result result) {
         switch (call.method) {
             case "getSampleRate":
-                result.success((double)this.actualSampleRate); // cast to double just for compatibility with the iOS version
+                result.success((double) this.actualSampleRate); // cast to double just for compatibility with the iOS version
                 break;
             case "getBitDepth":
                 result.success(this.actualBitDepth);
@@ -90,7 +90,8 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
         }
     }
 
-    private void initRecorder () {
+    @SuppressLint("MissingPermission")
+    private void initRecorder() {
         // Try to initialize and start the recorder
         recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
         if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
@@ -135,8 +136,8 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     /// Bug fix by https://github.com/Lokhozt
     /// following https://github.com/flutter/flutter/issues/34993
     private static class MainThreadEventSink implements EventChannel.EventSink {
-        private EventChannel.EventSink eventSink;
-        private Handler handler;
+        private final EventChannel.EventSink eventSink;
+        private final Handler handler;
 
         MainThreadEventSink(EventChannel.EventSink eventSink) {
           this.eventSink = eventSink;

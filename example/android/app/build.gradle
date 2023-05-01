@@ -26,7 +26,7 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    compileSdkVersion 31
+    namespace 'com.code.aaron.micstream'
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -41,6 +41,7 @@ android {
         applicationId "com.aaron.mic_stream"
         minSdkVersion 16
         targetSdkVersion 33
+        compileSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -52,6 +53,7 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    namespace 'com.aaron.mic_stream'
 }
 
 flutter {
