@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart' as handler;
 
 // In reference to the implementation of the official sensors plugin
 // https://github.com/flutter/plugins/tree/master/packages/sensors
@@ -90,21 +90,43 @@ class MicStream {
   /// channelConfig:   States whether audio is mono or stereo
   /// audioFormat:     Switch between 8- and 16-bit PCM streams
   ///
-  static Future<Stream<Uint8List>?> microphone(
+  static Stream<Uint8List> microphone(
       {AudioSource? audioSource,
       int? sampleRate,
       ChannelConfig? channelConfig,
-      AudioFormat? audioFormat}) async {
+      AudioFormat? audioFormat}) {
     audioSource ??= DEFAULT_AUDIO_SOURCE;
     sampleRate ??= DEFAULT_SAMPLE_RATE;
     channelConfig ??= DEFAULT_CHANNELS_CONFIG;
     audioFormat ??= DEFAULT_AUDIO_FORMAT;
 
     if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
-      throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
-    if (_requestPermission) if (!(await permissionStatus))
-      throw (PlatformException);
+      return Stream.error(
+          RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
 
+    final initStream = _requestPermission
+        ? Stream.fromFuture(permissionStatus)
+        : Stream.value(true);
+
+    return initStream.asyncExpand((grantedPermission) {
+      if (!grantedPermission) {
+        throw Exception('Microphone permission is not granted');
+      }
+      return _setupMicStream(
+        audioSource!,
+        sampleRate!,
+        channelConfig!,
+        audioFormat!,
+      );
+    });
+  }
+
+  static Stream<Uint8List> _setupMicStream(
+    AudioSource audioSource,
+    int sampleRate,
+    ChannelConfig channelConfig,
+    AudioFormat audioFormat,
+  ) {
     // If first time or configs have changed reinitialise audio recorder
     if (audioSource != __audioSource ||
         sampleRate != __sampleRate ||
@@ -144,8 +166,7 @@ class MicStream {
       bufferSizeCompleter.complete(
           await _microphoneMethodChannel.invokeMethod("getBufferSize") as int?);
     });
-
-    return _microphone;
+    return _microphone!;
   }
 
   /// Updates flag to determine whether to request audio recording permission. Set to false to disable dialogue, set to true (default) to request permission if necessary
