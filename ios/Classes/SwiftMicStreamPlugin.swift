@@ -113,7 +113,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 
                 try audioCaptureDevice.lockForConfiguration()
 
-                try audioSession.setCategory(AVAudioSession.Category.record,mode: .measurement)
+                try audioSession.setCategory(AVAudioSession.Category.playAndRecord,mode: .measurement, options: [.defaultToSpeaker])
 
                 try audioSession.setPreferredSampleRate(Double(SAMPLE_RATE))
 
