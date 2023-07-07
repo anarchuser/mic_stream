@@ -113,7 +113,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 
                 try audioCaptureDevice.lockForConfiguration()
 
-                try audioSession.setCategory(AVAudioSession.Category.playAndRecord,mode: .measurement, options: [.defaultToSpeaker])
+                try audioSession.setCategory(AVAudioSession.Category.playAndRecord,mode: .measurement, options: [.defaultToSpeaker, .allowBluetoothA2DP,])
 
                 try audioSession.setPreferredSampleRate(Double(SAMPLE_RATE))
 
