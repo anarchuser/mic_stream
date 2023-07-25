@@ -20,12 +20,13 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-/** MicStreamPlugin
- *  In reference to flutters official sensors plugin
- *  and the example of the streams_channel (v0.2.2) plugin
+/**
+ * MicStreamPlugin
+ * In reference to flutters official sensors plugin
+ * and the example of the streams_channel (v0.2.2) plugin
  */
 
-@TargetApi(16)  // Should be unnecessary, but isn't // fix build.gradle...?
+@TargetApi(16) // Should be unnecessary, but isn't // fix build.gradle...?
 public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandler, MethodCallHandler {
     private static final String MICROPHONE_CHANNEL_NAME = "aaron.code.com/mic_stream";
     private static final String MICROPHONE_METHOD_CHANNEL_NAME = "aaron.code.com/mic_stream_method_channel";
@@ -65,7 +66,7 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     private int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
     private int actualBitDepth;
-    private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+    private int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT) / 32;
 
     // Runnable management
     private volatile boolean record = false;
@@ -76,7 +77,8 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     public void onMethodCall(MethodCall call, Result result) {
         switch (call.method) {
             case "getSampleRate":
-                result.success((double)this.actualSampleRate); // cast to double just for compatibility with the iOS version
+                result.success((double) this.actualSampleRate); // cast to double just for compatibility with the iOS
+                                                                // version
                 break;
             case "getBitDepth":
                 result.success(this.actualBitDepth);
@@ -90,7 +92,7 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
         }
     }
 
-    private void initRecorder () {
+    private void initRecorder() {
         // Try to initialize and start the recorder
         recorder = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT, BUFFER_SIZE);
         if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
@@ -104,14 +106,16 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            if (recorder == null) initRecorder();
+            if (recorder == null)
+                initRecorder();
             isRecording = true;
 
             actualSampleRate = recorder.getSampleRate();
             actualBitDepth = (recorder.getAudioFormat() == AudioFormat.ENCODING_PCM_8BIT ? 8 : 16);
 
             // Wait until recorder is initialised
-            while (recorder == null || recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING);
+            while (recorder == null || recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING)
+                ;
 
             // Repeatedly push audio samples to stream
             while (record) {
@@ -139,50 +143,51 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
         private Handler handler;
 
         MainThreadEventSink(EventChannel.EventSink eventSink) {
-          this.eventSink = eventSink;
-          handler = new Handler(Looper.getMainLooper());
+            this.eventSink = eventSink;
+            handler = new Handler(Looper.getMainLooper());
         }
 
         @Override
         public void success(final Object o) {
-          handler.post(new Runnable() {
-            @Override
-            public void run() {
-              eventSink.success(o);
-            }
-          });
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    eventSink.success(o);
+                }
+            });
         }
 
         @Override
         public void error(final String s, final String s1, final Object o) {
-          handler.post(new Runnable() {
-            @Override
-            public void run() {
-              eventSink.error(s, s1, o);
-            }
-          });
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    eventSink.error(s, s1, o);
+                }
+            });
         }
 
         @Override
         public void endOfStream() {
-          handler.post(new Runnable() {
-            @Override
-            public void run() {
-              eventSink.endOfStream();
-            }
-          });
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    eventSink.endOfStream();
+                }
+            });
         }
     }
     /// End
 
     @Override
     public void onListen(Object args, final EventChannel.EventSink eventSink) {
-        if (isRecording) return;
+        if (isRecording)
+            return;
 
         ArrayList<Integer> config = (ArrayList<Integer>) args;
 
         // Set parameters, if available
-        switch(config.size()) {
+        switch (config.size()) {
             case 4:
                 AUDIO_FORMAT = config.get(3);
             case 3:
@@ -193,13 +198,13 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
                 AUDIO_SOURCE = config.get(0);
             default:
                 try {
-                    BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+                    BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT) / 32;
                 } catch (Exception e) {
                     eventSink.error("-3", "Invalid AudioRecord parameters", e);
                 }
         }
-        
-        if(AUDIO_FORMAT != AudioFormat.ENCODING_PCM_8BIT && AUDIO_FORMAT != AudioFormat.ENCODING_PCM_16BIT) {
+
+        if (AUDIO_FORMAT != AudioFormat.ENCODING_PCM_8BIT && AUDIO_FORMAT != AudioFormat.ENCODING_PCM_16BIT) {
             eventSink.error("-3", "Invalid Audio Format specified", null);
             return;
         }
@@ -215,8 +220,9 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     public void onCancel(Object o) {
         // Stop runnable
         record = false;
-        while (isRecording);
-        if(recorder != null) {
+        while (isRecording)
+            ;
+        if (recorder != null) {
             // Stop and reset audio recorder
             recorder.stop();
             recorder.release();
@@ -224,4 +230,3 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
         recorder = null;
     }
 }
-
