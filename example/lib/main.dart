@@ -28,8 +28,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   late StreamSubscription listener;
   List<int>? currentSamples = [];
   List<int> visibleSamples = [];
-  int? localMax;
-  int? localMin;
+  late int localMax;
+  late int localMin;
 
   Random rng = new Random();
 
@@ -93,8 +93,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     listener.onError(print);
     print("Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
 
-    localMax = null;
-    localMin = null;
+    localMax = 0;
+    localMin = 0;
 
     visibleSamples = [];
     bytesPerSample = (await MicStream.bitDepth) ~/ 8;
@@ -107,9 +107,17 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   }
 
   void _calculateSamples(samples) async {
-    // print("Sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
-    if (page == 0) _calculateWaveSamples(samples);
-    else if (page == 1) _calculateIntensitySamples(samples);
+    var _samples = normalise(samples);
+    if (page == 0) _calculateWaveSamples(_samples);
+    else if (page == 1) _calculateIntensitySamples(_samples);
+  }
+
+  List<int> normalise(samples) {
+    List<int> newSamples = [];
+    for (int sample in samples) {
+      newSamples.add((sample + 128) % 256);
+    }
+    return newSamples;
   }
 
   void _calculateWaveSamples(samples) {
@@ -117,19 +125,15 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     visibleSamples = [];
     int tmp = 0;
     for (int sample in samples) {
-      if (sample > 128) sample -= 255;
       if (first) {
-        tmp = sample * 128;
+        tmp = sample;
       } else {
-        tmp += sample;
+        tmp += sample * 128;
+        tmp -= pow(2, 14).toInt();
         visibleSamples.add(tmp);
 
-        localMax ??= visibleSamples.last;
-        localMin ??= visibleSamples.last;
-        localMax = max(localMax!, visibleSamples.last);
-        localMin = min(localMin!, visibleSamples.last);
-
-        tmp = 0;
+        localMax = max(localMax, visibleSamples.last);
+        localMin = min(localMin, visibleSamples.last);
       }
       first = !first;
     }
@@ -149,10 +153,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
     if (currentSamples!.length >= samplesPerSecond / 10) {
       visibleSamples
           .add(currentSamples!.map((i) => i).toList().reduce((a, b) => a + b));
-      localMax ??= visibleSamples.last;
-      localMin ??= visibleSamples.last;
-      localMax = max(localMax!, visibleSamples.last);
-      localMin = min(localMin!, visibleSamples.last);
+      localMax = max(localMax, visibleSamples.last);
+      localMin = min(localMin, visibleSamples.last);
       currentSamples = [];
       setState(() {});
     }
@@ -281,10 +283,6 @@ class WavePainter extends CustomPainter {
   BuildContext? context;
   Size? size;
 
-  // Set max val possible in stream, depending on the config
-  // int absMax = 255*4; //(AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) ? 127 : 32767;
-  // int absMin; //(AUDIO_FORMAT == AudioFormat.ENCODING_PCM_8BIT) ? 127 : 32767;
-
   WavePainter(
       {this.samples, this.color, this.context, this.localMax, this.localMin});
 
@@ -319,9 +317,8 @@ class WavePainter extends CustomPainter {
     for (int i = 0; i < samples.length; i++) {
       var point = Offset(
           i * pixelsPerSample,
-          0.5 *
-              size!.height *
-              pow((samples[i] - localMin!) / (localMax! - localMin!), 5));
+          0.5 * size!.height *
+              pow((samples[i] - localMin!) / (localMax! - localMin!), 1));
       points.add(point);
     }
     return points;
