@@ -73,7 +73,8 @@ class MicStream {
       return true;
     }
     var micStatus = await handler.Permission.microphone.request();
-    return !micStatus.isDenied;
+    print(micStatus);
+    return !micStatus.isDenied && !micStatus.isPermanentlyDenied;
   }
 
   /// This function initializes a connection to the native backend (if not already available).
@@ -148,15 +149,29 @@ class MicStream {
     // sampleRate/bitDepth should be populated before any attempt to consume the stream externally.
     // configure these as Completers and listen to the stream internally before returning
     // these will complete only when this internal listener is called
-    _sampleRateCompleter = new Completer();
+    var _tmpSampleRateCompleter = _sampleRateCompleter;
+    _sampleRateCompleter = new Completer<double>();
+    if (!_tmpSampleRateCompleter.isCompleted) {
+      _tmpSampleRateCompleter.complete(_sampleRateCompleter.future);
+    }
+
+    var _tmpBitDepthCompleter = _bitDepthCompleter;
     _bitDepthCompleter = new Completer();
+    if (!_tmpBitDepthCompleter.isCompleted) {
+      _tmpBitDepthCompleter.complete(_bitDepthCompleter.future);
+    }
+
+    var _tmpBufferSizeCompleter = _bufferSizeCompleter;
     _bufferSizeCompleter = new Completer();
-    StreamSubscription<Uint8List>? listener;
+    if (!_tmpBufferSizeCompleter.isCompleted) {
+      _tmpBufferSizeCompleter.complete(_bufferSizeCompleter.future);
+    }
+
+    late StreamSubscription<Uint8List> listener;
     listener = _microphone!.listen((x) async {
-      await listener!.cancel();
-      listener = null;
-      _sampleRateCompleter.complete(await _microphoneMethodChannel
-          .invokeMethod("getSampleRate") as double);
+      listener.cancel();
+      _sampleRateCompleter.complete(
+          await _microphoneMethodChannel.invokeMethod("getSampleRate") as double);
       _bitDepthCompleter.complete(
           await _microphoneMethodChannel.invokeMethod("getBitDepth") as int);
       _bufferSizeCompleter.complete(

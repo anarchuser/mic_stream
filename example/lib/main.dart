@@ -79,13 +79,7 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   late int samplesPerSecond;
 
   Future<bool> _startListening() async {
-    print("START LISTENING");
     if (isRecording) return false;
-    // if this is the first time invoking the microphone()
-    // method to get the stream, we don't yet have access
-    // to the sampleRate and bitDepth properties
-    print("wait for stream");
-
     // Default option. Set to false to disable request permission dialogue
     MicStream.shouldRequestPermission(true);
 
@@ -96,17 +90,15 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
         audioFormat: AUDIO_FORMAT);
     listener = stream!.listen(_calculateSamples);
-
-    // after invoking the method for the first time, though, these will be available;
-    // It is not necessary to setup a listener first, the stream only needs to be returned first
+    listener.onError(print);
     print("Start Listening to the microphone, sample rate is ${await MicStream.sampleRate}, bit depth is ${await MicStream.bitDepth}, bufferSize: ${await MicStream.bufferSize}");
 
     localMax = null;
     localMin = null;
 
     visibleSamples = [];
-    bytesPerSample = (await MicStream.bitDepth)! ~/ 8;
-    samplesPerSecond = (await MicStream.sampleRate)!.toInt();
+    bytesPerSample = (await MicStream.bitDepth) ~/ 8;
+    samplesPerSecond = (await MicStream.sampleRate).toInt();
     setState(() {
       isRecording = true;
       startTime = DateTime.now();
