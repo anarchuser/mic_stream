@@ -49,16 +49,16 @@ class MicStream {
       MethodChannel('aaron.code.com/mic_stream_method_channel');
 
   /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream
-  static Future<double> get sampleRate => _sampleRateCompleter.future;
-  static Completer<double> _sampleRateCompleter = new Completer<double>();
+  static Future<int> get sampleRate => _sampleRateCompleter.future;
+  static Completer<int> _sampleRateCompleter = new Completer();
 
   /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
   static Future<int> get bitDepth => _bitDepthCompleter.future;
-  static Completer<int> _bitDepthCompleter = new Completer<int>();
+  static Completer<int> _bitDepthCompleter = new Completer();
 
   /// The amount of recorded data, per sample, in bytes
   static Future<int> get bufferSize => _bufferSizeCompleter.future;
-  static Completer<int> _bufferSizeCompleter = new Completer<int>();
+  static Completer<int> _bufferSizeCompleter = new Completer();
 
   /// The configured microphone stream and its config
   static Stream<Uint8List>? _microphone;
@@ -150,7 +150,7 @@ class MicStream {
     // configure these as Completers and listen to the stream internally before returning
     // these will complete only when this internal listener is called
     var _tmpSampleRateCompleter = _sampleRateCompleter;
-    _sampleRateCompleter = new Completer<double>();
+    _sampleRateCompleter = new Completer();
     if (!_tmpSampleRateCompleter.isCompleted) {
       _tmpSampleRateCompleter.complete(_sampleRateCompleter.future);
     }
@@ -170,8 +170,8 @@ class MicStream {
     late StreamSubscription<Uint8List> listener;
     listener = _microphone!.listen((x) async {
       listener.cancel();
-      _sampleRateCompleter.complete(
-          await _microphoneMethodChannel.invokeMethod("getSampleRate") as double);
+      _sampleRateCompleter.complete((
+          await _microphoneMethodChannel.invokeMethod("getSampleRate") as double).toInt());
       _bitDepthCompleter.complete(
           await _microphoneMethodChannel.invokeMethod("getBitDepth") as int);
       _bufferSizeCompleter.complete(

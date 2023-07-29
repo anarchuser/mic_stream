@@ -1,4 +1,4 @@
-# mic_stream: 0.7.0-dev
+# mic_stream: 0.7.1-dev
 
 [Flutter Plugin]
 Provides a tool to get the microphone input as 8 or 16 bit PCM Stream.
@@ -28,7 +28,7 @@ audioFormat: AudioFormat      // 8 bit PCM or 16 bit PCM. Other formats are not 
 The plugin also provides information about some properties:
 
 ```dart
-Future<double> sampleRate = await MicStream.sampleRate;
+Future<int> sampleRate = await MicStream.sampleRate;
 Future<int> bitDepth = await MicStream.bitDepth;
 Future<int> bufferSize = await MicStream.bufferSize;
 ```

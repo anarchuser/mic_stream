@@ -1,3 +1,9 @@
+## 0.7.1-dev
+
+### !!! This version changes the API !!!
+* Change type of get sampleRate from double to int
+* Fix parameter getters potentially never returning
+
 ## 0.7.0-dev
 
 ### !!! This version changes the API !!!
