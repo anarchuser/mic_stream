@@ -24,12 +24,21 @@ enum AudioSource {
 
 /// Mono: Records using one microphone;
 /// Stereo: Records using two spatially distant microphones (if applicable)
-enum ChannelConfig { CHANNEL_IN_MONO, CHANNEL_IN_STEREO }
+enum ChannelConfig {
+  CHANNEL_IN_MONO,
+  CHANNEL_IN_STEREO,
+}
 
 /// Bit depth.
 /// 8-bit means each sample consists of 1 byte
 /// 16-bit means each sample consists of 2 consecutive bytes, in little endian
-enum AudioFormat { ENCODING_PCM_8BIT, ENCODING_PCM_16BIT }
+enum AudioFormat {
+  ENCODING_PCM_8BIT,
+  ENCODING_PCM_16BIT,
+  ENCODING_PCM_FLOAT,
+  ENCODING_PCM_24BIT_PACKED,
+  ENCODING_PCM_32BIT
+}
 
 class MicStream {
   static bool _requestPermission = true;
