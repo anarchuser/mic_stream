@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:permission_handler/permission_handler.dart' as handler;
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart' as handler;
 
 // In reference to the implementation of the official sensors plugin
 // https://github.com/flutter/plugins/tree/master/packages/sensors
@@ -35,18 +35,15 @@ class MicStream {
   static bool _requestPermission = true;
 
   static const AudioSource DEFAULT_AUDIO_SOURCE = AudioSource.DEFAULT;
-  static const ChannelConfig DEFAULT_CHANNELS_CONFIG =
-      ChannelConfig.CHANNEL_IN_MONO;
+  static const ChannelConfig DEFAULT_CHANNELS_CONFIG = ChannelConfig.CHANNEL_IN_MONO;
   static const AudioFormat DEFAULT_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_8BIT;
   static const int DEFAULT_SAMPLE_RATE = 16000;
 
   static const int _MIN_SAMPLE_RATE = 1;
   static const int _MAX_SAMPLE_RATE = 100000;
 
-  static const EventChannel _microphoneEventChannel =
-      EventChannel('aaron.code.com/mic_stream');
-  static const MethodChannel _microphoneMethodChannel =
-      MethodChannel('aaron.code.com/mic_stream_method_channel');
+  static const EventChannel _microphoneEventChannel = EventChannel('aaron.code.com/mic_stream');
+  static const MethodChannel _microphoneMethodChannel = MethodChannel('aaron.code.com/mic_stream_method_channel');
 
   /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream
   static Future<double>? get sampleRate => _sampleRate;
@@ -91,10 +88,7 @@ class MicStream {
   /// audioFormat:     Switch between 8- and 16-bit PCM streams
   ///
   static Future<Stream<Uint8List>?> microphone(
-      {AudioSource? audioSource,
-      int? sampleRate,
-      ChannelConfig? channelConfig,
-      AudioFormat? audioFormat}) async {
+      {AudioSource? audioSource, int? sampleRate, ChannelConfig? channelConfig, AudioFormat? audioFormat}) async {
     audioSource ??= DEFAULT_AUDIO_SOURCE;
     sampleRate ??= DEFAULT_SAMPLE_RATE;
     channelConfig ??= DEFAULT_CHANNELS_CONFIG;
@@ -102,8 +96,7 @@ class MicStream {
 
     if (sampleRate < _MIN_SAMPLE_RATE || sampleRate > _MAX_SAMPLE_RATE)
       throw (RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
-    if (_requestPermission) if (!(await permissionStatus))
-      throw (PlatformException);
+    if (_requestPermission) if (!(await permissionStatus)) throw (PlatformException);
 
     // If first time or configs have changed reinitialise audio recorder
     if (audioSource != __audioSource ||
@@ -137,15 +130,16 @@ class MicStream {
     listener = _microphone!.listen((x) async {
       await listener!.cancel();
       listener = null;
-      sampleRateCompleter.complete(await _microphoneMethodChannel
-          .invokeMethod("getSampleRate") as double?);
-      bitDepthCompleter.complete(
-          await _microphoneMethodChannel.invokeMethod("getBitDepth") as int?);
-      bufferSizeCompleter.complete(
-          await _microphoneMethodChannel.invokeMethod("getBufferSize") as int?);
+      sampleRateCompleter.complete(await _microphoneMethodChannel.invokeMethod("getSampleRate") as double?);
+      bitDepthCompleter.complete(await _microphoneMethodChannel.invokeMethod("getBitDepth") as int?);
+      bufferSizeCompleter.complete(await _microphoneMethodChannel.invokeMethod("getBufferSize") as int?);
     });
 
     return _microphone;
+  }
+
+  static void clean() {
+    _microphoneMethodChannel.invokeMethod("clean");
   }
 
   /// Updates flag to determine whether to request audio recording permission. Set to false to disable dialogue, set to true (default) to request permission if necessary
