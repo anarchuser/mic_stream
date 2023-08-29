@@ -28,9 +28,10 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
     var session : AVCaptureSession!
     var audioSession: AVAudioSession!
     var oldAudioSessionCategory: AVAudioSession.Category?
+    var oldAudioSessionCategoryOptions: AVAudioSession.CategoryOptions?
     var oldAudioSessionMode: AVAudioSession.Mode?
     var oldAudioSessionPolicy: AVAudioSession.RouteSharingPolicy?
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
             case "getSampleRate":
@@ -49,7 +50,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 result(FlutterMethodNotImplemented)
         }
     }
-    
+
     public func onCancel(withArguments arguments:Any?) -> FlutterError?  {
         self.session?.stopRunning()
         if let category = oldAudioSessionCategory {
@@ -100,7 +101,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
         startCapture();
         return nil;
     }
-    
+
     func startCapture() {
     
         if let audioCaptureDevice : AVCaptureDevice = AVCaptureDevice.default(for:AVMediaType.audio) {
@@ -111,15 +112,15 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 //magic word
                 //This will allow developers to specify sample rates, etc.
                 try session.automaticallyConfiguresApplicationAudioSession = false
-                
+
                 try audioCaptureDevice.lockForConfiguration()
 
                 oldAudioSessionCategory = audioSession.category
                 oldAudioSessionCategoryOptions = audioSession.categoryOptions
                 oldAudioSessionMode = audioSession.mode
                 oldAudioSessionPolicy = audioSession.routeSharingPolicy
-                
-                try audioSession.setCategory(AVAudioSession.Category.record,mode: .measurement)
+
+                try audioSession.setCategory(AVAudioSession.Category.playAndRecord, mode: .measurement)
 
                 try audioSession.setPreferredSampleRate(Double(SAMPLE_RATE))
 
@@ -140,17 +141,17 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
                 // print("this is the session input number of channels: \(audioSession.inputNumberOfChannels)")
 
                 try audioSession.setActive(true)
-                
-                
+
+
                 let audioInput = try AVCaptureDeviceInput(device: audioCaptureDevice)
-                
-                
+
+
                 audioCaptureDevice.unlockForConfiguration()
 
                 if(self.session.canAddInput(audioInput)){
                     self.session.addInput(audioInput)
                 }
-                
+
                 // neither does setting AVLinearPCMBitDepthKey on audioOutput.audioSettings (unavailable on iOS)
                 // 99% sure it's not possible to set streaming sample rate/bitrate
                 // try AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(numChannels)
@@ -173,7 +174,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
             }
         }
     }
-    
+
     public func captureOutput(_            output      : AVCaptureOutput,
                    didOutput    sampleBuffer: CMSampleBuffer,
                    from         connection  : AVCaptureConnection) {	
@@ -183,7 +184,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
         let audioBuffer = AudioBuffer(mNumberChannels: numChannels, mDataByteSize: 0, mData: nil)
         var audioBufferList = AudioBufferList(mNumberBuffers: 1,
                                           mBuffers: audioBuffer)
-        
+
         CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(
             sampleBuffer,
             bufferListSizeNeededOut: nil,
@@ -198,7 +199,7 @@ public class SwiftMicStreamPlugin: NSObject, FlutterStreamHandler, FlutterPlugin
         if(audioBufferList.mBuffers.mData == nil) {
             return
         }
-        
+
         if(self.actualSampleRate == nil) {
             let fd = CMSampleBufferGetFormatDescription(sampleBuffer)
             let asbd:UnsafePointer<AudioStreamBasicDescription>? = CMAudioFormatDescriptionGetStreamBasicDescription(fd!)
