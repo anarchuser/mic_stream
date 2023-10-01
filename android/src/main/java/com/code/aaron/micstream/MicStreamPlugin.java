@@ -111,7 +111,20 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
             isRecording = true;
 
             actualSampleRate = recorder.getSampleRate();
-            actualBitDepth = (recorder.getAudioFormat() == AudioFormat.ENCODING_PCM_8BIT ? 8 : 16);
+            switch (recorder.getAudioFormat()) {
+                case AudioFormat.ENCODING_PCM_8BIT:
+                    actualBitDepth = 8;
+                    break;
+                case AudioFormat.ENCODING_PCM_16BIT:
+                    actualBitDepth = 16;
+                    break;
+                case AudioFormat.ENCODING_PCM_32BIT:
+                    actualBitDepth = 32;
+                    break;
+                case AudioFormat.ENCODING_PCM_FLOAT:
+                    actualBitDepth = 32;
+                    break;
+            }
 
             // Wait until recorder is initialised
             while (recorder == null || recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING);
@@ -122,7 +135,7 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
             // Set ByteOrder to native
             ByteOrder nativeOrder = ByteOrder.nativeOrder();
             data.order(nativeOrder);
-            System.out.println("Using native byte order " + nativeOrder);
+            System.out.println("mic_stream: Using native byte order " + nativeOrder);
 
             // Repeatedly push audio samples to stream
             while (record) {
@@ -188,29 +201,18 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
     public void onListen(Object args, final EventChannel.EventSink eventSink) {
         if (isRecording) return;
 
+        // Read and validate AudioRecord parameters
         ArrayList<Integer> config = (ArrayList<Integer>) args;
-
-        // Set parameters, if available
-        switch(config.size()) {
-            case 4:
-                AUDIO_FORMAT = config.get(3);
-            case 3:
-                CHANNEL_CONFIG = config.get(2);
-            case 2:
-                SAMPLE_RATE = config.get(1);
-            case 1:
-                AUDIO_SOURCE = config.get(0);
-            default:
-                try {
-                    BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
-                } catch (Exception e) {
-                    eventSink.error("-3", "Invalid AudioRecord parameters", e);
-                }
-        }
-        
-        if(AUDIO_FORMAT != AudioFormat.ENCODING_PCM_8BIT && AUDIO_FORMAT != AudioFormat.ENCODING_PCM_16BIT) {
-            eventSink.error("-3", "Invalid Audio Format specified", null);
-            return;
+        try {
+            AUDIO_SOURCE = config.get(0);
+            SAMPLE_RATE = config.get(1);
+            CHANNEL_CONFIG = config.get(2);
+            AUDIO_FORMAT = config.get(3);
+            BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+        } catch (java.lang.IndexOutOfBoundsException e) {
+            eventSink.error("-4", "Invalid number of parameteres. Expected 4, got " + config.size(), e);
+        } catch (Exception e) {
+            eventSink.error("-3", "Invalid AudioRecord parameters", e);
         }
 
         this.eventSink = new MainThreadEventSink(eventSink);
