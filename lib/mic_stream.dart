@@ -82,7 +82,6 @@ class MicStream {
       return true;
     }
     var micStatus = await handler.Permission.microphone.request();
-    print(micStatus);
     return !micStatus.isDenied && !micStatus.isPermanentlyDenied;
   }
 

@@ -28,8 +28,8 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
   late StreamSubscription listener;
   List<int>? currentSamples = [];
   List<int> visibleSamples = [];
-  late int localMax;
-  late int localMin;
+  int localMax = 0;
+  int localMin = 0;
 
   Random rng = new Random();
 
@@ -129,7 +129,6 @@ class _MicStreamExampleAppState extends State<MicStreamExampleApp>
         tmp = sample;
       } else {
         tmp += sample * 128;
-        tmp -= pow(2, 14).toInt();
         visibleSamples.add(tmp);
 
         localMax = max(localMax, visibleSamples.last);
@@ -314,20 +313,25 @@ class WavePainter extends CustomPainter {
     List<Offset> points = [];
     if (samples == null) samples = List<int>.filled(size!.width.toInt(), (0.5).toInt());
     double pixelsPerSample = size!.width / samples.length;
+    double max = (localMin!.abs() + localMax!) / 2;
     for (int i = 0; i < samples.length; i++) {
-      var point = Offset(
-          i * pixelsPerSample,
-          0.5 * size!.height *
-              pow((samples[i] - localMin!) / (localMax! - localMin!), 1));
+      var height = project(
+          (samples[i] - localMin!) / (localMax! - localMin!),
+          max, size!.height);
+      var point = Offset(i * pixelsPerSample, height);
       points.add(point);
     }
+    print(points);
     return points;
   }
 
-  double project(int val, int max, double height) {
-    double waveHeight =
-        (max == 0) ? val.toDouble() : (val / max) * 0.5 * height;
-    return waveHeight + 0.5 * height;
+  double project(double val, double max, double height) {
+    if (max == 0) {
+      return 0.5 * height;
+    }
+    var rv = val / max * 0.5 * height;
+    print("val $val / max $max = rv $rv");
+    return rv;
   }
 }
 
