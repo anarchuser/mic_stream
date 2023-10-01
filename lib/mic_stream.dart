@@ -30,13 +30,16 @@ enum ChannelConfig {
 }
 
 /// Bit depth.
-/// 8-bit means each sample consists of 1 byte
-/// 16-bit means each sample consists of 2 consecutive bytes, in little endian
+/// 8 bit means each sample consists of 1 byte
+/// 16 bit means each sample consists of 2 consecutive bytes, in little endian
+/// 24 bit is currently not supported (cause nobody needs this)
+/// 32 bit means each sample consists of 4 consecutive bytes, in little endian
+/// float is the same as 32 bit, except it represents a floating point number
 enum AudioFormat {
   ENCODING_PCM_8BIT,
   ENCODING_PCM_16BIT,
   ENCODING_PCM_FLOAT,
-  ENCODING_PCM_24BIT_PACKED,
+//ENCODING_PCM_24BIT_PACKED,
   ENCODING_PCM_32BIT
 }
 
@@ -57,20 +60,46 @@ class MicStream {
   static const MethodChannel _microphoneMethodChannel =
       MethodChannel('aaron.code.com/mic_stream_method_channel');
 
-  /// The actual sample rate used for streaming.  This may return zero if invoked without listening to the _microphone Stream
-  static Future<int> get sampleRate => _sampleRateCompleter.future;
-  static Completer<int> _sampleRateCompleter = new Completer();
+  /// The actual sample rate used for streaming. Only completes once a stream started.
+  static Future<int> get sampleRate async {
+    _memoisedSampleRate ??= await _microphoneFuture.then((_) {
+      return _microphoneMethodChannel.invokeMethod("getSampleRate")
+          .then((value) => (value as double).toInt());
+    });
+    return _memoisedSampleRate!;
+  }
+  static int? _memoisedSampleRate;
 
-  /// The actual bit depth used for streaming. This may return zero if invoked without listening to the _microphone Stream first.
-  static Future<int> get bitDepth => _bitDepthCompleter.future;
-  static Completer<int> _bitDepthCompleter = new Completer();
+  /// The actual bit depth used for streaming. Only completes once a stream started.
+  static Future<int> get bitDepth async {
+    _memoisedBitDepth = await _microphoneFuture.then((_) {
+      return _microphoneMethodChannel.invokeMethod("getBitDepth")
+          .then((value) => value as int);
+    });
+    return _memoisedBitDepth!;
+  }
+  static int? _memoisedBitDepth;
 
-  /// The amount of recorded data, per sample, in bytes
-  static Future<int> get bufferSize => _bufferSizeCompleter.future;
-  static Completer<int> _bufferSizeCompleter = new Completer();
+  /// The amount of recorded data, per sample, in bytes. Only completes once a stream started.
+  static Future<int> get bufferSize async {
+    _memoisedBufferSize ??= await _microphoneFuture.then((_) {
+      return _microphoneMethodChannel.invokeMethod("getBufferSize")
+          .then((value) => value as int);
+    });
+    return _memoisedBufferSize!;
+  }
+  static int? _memoisedBufferSize;
 
-  /// The configured microphone stream and its config
+  /// The configured microphone stream
   static Stream<Uint8List>? _microphone;
+  static Completer _microphoneCompleter = new Completer();
+  static Future get _microphoneFuture async {
+    if (!_microphoneCompleter.isCompleted) {
+      await _microphoneCompleter.future;
+    }
+  }
+
+  /// The configured stream config
   static AudioSource? __audioSource;
   static int? __sampleRate;
   static ChannelConfig? __channelConfig;
@@ -89,12 +118,15 @@ class MicStream {
   /// Returns a Uint8List stream representing the captured audio.
   /// IMPORTANT - on iOS, there is no guarantee that captured audio will be encoded with the requested sampleRate/bitDepth.
   /// You must check the sampleRate and bitDepth properties of the MicStream object *after* invoking this method (though this does not need to be before listening to the returned stream).
-  /// This is why this method returns a Uint8List - if you request a 16-bit encoding, you will need to check that
-  /// the returned stream is actually returning 16-bit data, and if so, manually cast uint8List.buffer.asUint16List()
+  /// This is why this method returns a Uint8List - if you request a deeper encoding,
+  /// you will need to manually convert the returned stream to the appropriate type,
+  /// e.g., for 16 bit map each element using uint8List.buffer.asUint16List().
+  /// Alternatively, you can call `toSampleStream(Stream<Uint8List>)` to transform the raw stream to a more easily usable stream.
+  ///
   /// audioSource:     The device used to capture audio. The default let's the OS decide.
   /// sampleRate:      The amount of samples per second. More samples give better quality at the cost of higher data transmission
   /// channelConfig:   States whether audio is mono or stereo
-  /// audioFormat:     Switch between 8- and 16-bit PCM streams
+  /// audioFormat:     Switch between 8, 16, 32 bit, and floating point PCM streams
   ///
   static Stream<Uint8List> microphone(
       {AudioSource? audioSource,
@@ -110,11 +142,11 @@ class MicStream {
       return Stream.error(
           RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
 
-    final initStream = _requestPermission
-        ? Stream.fromFuture(permissionStatus)
+    final permissionStatus = _requestPermission
+        ? Stream.fromFuture(MicStream.permissionStatus)
         : Stream.value(true);
 
-    return initStream.asyncExpand((grantedPermission) {
+    return permissionStatus.asyncExpand((grantedPermission) {
       if (!grantedPermission) {
         throw Exception('Microphone permission is not granted');
       }
@@ -138,55 +170,105 @@ class MicStream {
         sampleRate != __sampleRate ||
         channelConfig != __channelConfig ||
         audioFormat != __audioFormat) {
-      _microphone = _microphoneEventChannel.receiveBroadcastStream([
-        audioSource.index,
-        sampleRate,
-        channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
-        audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 3 : 2
-      ]).cast<Uint8List>();
+
+      // Reset runtime values
+      if (_microphone != null) {
+        var _tmpCompleter = _microphoneCompleter;
+        _microphoneCompleter = new Completer();
+        _tmpCompleter.complete(_microphoneCompleter.future);
+      }
+      _memoisedSampleRate = null;
+      _memoisedBitDepth = null;
+      _memoisedBufferSize = null;
+
+      // Reset configuration
       __audioSource = audioSource;
       __sampleRate = sampleRate;
       __channelConfig = channelConfig;
       __audioFormat = audioFormat;
+
+      // Reset audio stream
+      _microphone = _microphoneEventChannel.receiveBroadcastStream([
+        audioSource.index,
+        sampleRate,
+        channelConfig == ChannelConfig.CHANNEL_IN_MONO ? 16 : 12,
+        switch (audioFormat) {
+        AudioFormat.ENCODING_PCM_8BIT => 3,
+        AudioFormat.ENCODING_PCM_16BIT => 2,
+//      AudioFormat.ENCODING_PCM_24BIT_PACKED => 21,
+        AudioFormat.ENCODING_PCM_32BIT => 22,
+        AudioFormat.ENCODING_PCM_FLOAT => 4
+        }
+      ]).cast<Uint8List>();
     }
 
+    // Check for errors
     if (_microphone == null) {
+      if (!_microphoneCompleter.isCompleted) {
+        _microphoneCompleter.completeError(StateError);
+      }
       return Stream.error(StateError);
     }
 
-    // sampleRate/bitDepth should be populated before any attempt to consume the stream externally.
-    // configure these as Completers and listen to the stream internally before returning
-    // these will complete only when this internal listener is called
-    var _tmpSampleRateCompleter = _sampleRateCompleter;
-    _sampleRateCompleter = new Completer();
-    if (!_tmpSampleRateCompleter.isCompleted) {
-      _tmpSampleRateCompleter.complete(_sampleRateCompleter.future);
-    }
-
-    var _tmpBitDepthCompleter = _bitDepthCompleter;
-    _bitDepthCompleter = new Completer();
-    if (!_tmpBitDepthCompleter.isCompleted) {
-      _tmpBitDepthCompleter.complete(_bitDepthCompleter.future);
-    }
-
-    var _tmpBufferSizeCompleter = _bufferSizeCompleter;
-    _bufferSizeCompleter = new Completer();
-    if (!_tmpBufferSizeCompleter.isCompleted) {
-      _tmpBufferSizeCompleter.complete(_bufferSizeCompleter.future);
-    }
-
-    late StreamSubscription<Uint8List> listener;
-    listener = _microphone!.listen((x) async {
-      listener.cancel();
-      _sampleRateCompleter.complete((
-          await _microphoneMethodChannel.invokeMethod("getSampleRate") as double).toInt());
-      _bitDepthCompleter.complete(
-          await _microphoneMethodChannel.invokeMethod("getBitDepth") as int);
-      _bufferSizeCompleter.complete(
-          await _microphoneMethodChannel.invokeMethod("getBufferSize") as int);
+    // Force evaluation of actual config values
+    _microphone!.first.then((value) {
+      if (!_microphoneCompleter.isCompleted) {
+        _microphoneCompleter.complete();
+      }
     });
 
     return _microphone!;
+  }
+
+  /// StreamTransformer to convert a raw Stream<Uint8List> to num streams, e.g.:
+  /// 8 bit PCM + mono => Stream<int>, where each int is a *signed* byte, i.e., [-2^7; 2^7)
+  /// 16 bit PCM + stereo => Stream<(int, int)>, where each int is a *signed* byte, i.e., [-2^15; 2^15)
+  /// float bit PCM + stereo => Stream<(double, double)>, with double e [-1.0; 1.0), and 32 bit precision
+  static StreamTransformer<Uint8List, dynamic> get toSampleStream =>
+      // TODO: check bitDepth here already and call different handlers for every possible combination
+      (__channelConfig == ChannelConfig.CHANNEL_IN_MONO)
+          ? new StreamTransformer.fromHandlers(handleData: _expandUint8ListMono)
+          : new StreamTransformer.fromHandlers(handleData: _expandUint8ListStereo);
+
+  static void _expandUint8ListMono(Uint8List raw, EventSink sink) async {
+    switch (await bitDepth) {
+      case 8: raw.buffer.asInt8List().forEach(sink.add); break;
+      case 16: raw.buffer.asInt16List().forEach(sink.add); break;
+      case 24: sink.addError("24 bit PCM encoding is not supported"); break;
+      case 32: (__audioFormat == AudioFormat.ENCODING_PCM_32BIT)
+          ? raw.buffer.asInt32List().forEach(sink.add)
+          : raw.buffer.asFloat32List().forEach(sink.add);
+        break;
+      default:
+        sink.addError("No stream configured yet");
+    }
+  }
+  static void _expandUint8ListStereo(Uint8List raw, EventSink sink) async {
+    switch (await bitDepth) {
+      case 8: _listToPairList(raw.buffer.asInt8List()).forEach(sink.add); break;
+      case 16: _listToPairList(raw.buffer.asInt16List()).forEach(sink.add); break;
+      case 24: sink.addError("24 bit PCM encoding is not supported"); break;
+      case 32: (__audioFormat == AudioFormat.ENCODING_PCM_32BIT)
+          ? _listToPairList(raw.buffer.asInt32List()).forEach(sink.add)
+          : _listToPairList(raw.buffer.asFloat32List()).forEach(sink.add);
+      break;
+      default:
+        sink.addError("No stream configured yet");
+    }
+  }
+  static List<(num, num)> _listToPairList(List<num> mono) {
+    List<(num, num)> stereo = List.empty(growable: true);
+    num? first;
+    for (num sample in mono) {
+      if (first == null) {
+        first = sample;
+      }
+      else {
+        stereo.add((first, sample));
+        first = null;
+      }
+    }
+    return stereo;
   }
 
   /// Updates flag to determine whether to request audio recording permission. Set to false to disable dialogue, set to true (default) to request permission if necessary
