@@ -1,6 +1,8 @@
-## 0.7.1-dev
+## 0.7.1
 
 ### !!! This version changes the API !!!
++ Add StreamTransformer for easier processing
+* Fix Big/Litte endian issues
 * Change type of get sampleRate from double to int
 * Fix parameter getters potentially never returning
 

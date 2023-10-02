@@ -1,11 +1,11 @@
 name: mic_stream
 description: A plugin to receive raw byte streams from a device's microphone. Audio is returned as `Stream<Uint8list>`.
-version: 1.0.0-dev
+version: 0.7.1+2
 homepage: https://github.com/anarchuser/mic_stream
 
 environment:
-  sdk: '>=3.0.0'
-  flutter: ">=3.13.5"
+  sdk: '^3.0.0'
+  flutter: '>=3.13.5'
 
 module:
   androidX: true
@@ -13,7 +13,7 @@ module:
 dependencies:
   flutter:
     sdk: flutter
-  permission_handler: ^11.0.0
+  permission_handler: '^11.0.0'
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
