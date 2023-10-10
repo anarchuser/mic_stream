@@ -149,7 +149,7 @@ public class MicStreamPlugin implements FlutterPlugin, EventChannel.StreamHandle
 
         MainThreadEventSink(EventChannel.EventSink eventSink) {
           this.eventSink = eventSink;
-          handler = new Handler(Looper.getMainLooper());
+          handler = null;
         }
 
         @Override
