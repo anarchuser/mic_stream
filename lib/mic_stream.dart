@@ -142,9 +142,10 @@ class MicStream {
       return Stream.error(
           RangeError.range(sampleRate, _MIN_SAMPLE_RATE, _MAX_SAMPLE_RATE));
 
-    final permissionStatus = _requestPermission
-        ? Stream.fromFuture(MicStream.permissionStatus)
-        : Stream.value(true);
+    final permissionStatus = (_requestPermission
+            ? Stream.fromFuture(MicStream.permissionStatus)
+            : Stream.value(true))
+        .asBroadcastStream();
 
     return permissionStatus.asyncExpand((grantedPermission) {
       if (!grantedPermission) {
