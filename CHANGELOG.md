@@ -1,3 +1,7 @@
+## 0.7.2-dev
+
+* iOS: Reset previous audio session category on onCancel (#67)
+
 ## 0.7.1
 
 ### !!! This version changes the API !!!
