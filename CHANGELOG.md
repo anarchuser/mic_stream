@@ -1,3 +1,7 @@
+## 0.7.3
+
+* Removal of v1 Android embedding Java APIs (required by Flutter v3.29) (#100)
+
 ## 0.7.2
 
 * iOS: Reset previous audio session category on onCancel (#67)

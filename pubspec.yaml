@@ -1,17 +1,11 @@
 name: mic_stream
 description: A plugin to receive raw byte streams from a device's microphone. Audio is returned as `Stream<Uint8list>`.
-<<<<<<< HEAD
-version: 0.7.2
-||||||| parent of ca42aa6 (docs: adjust docs to new version 0.7.2-dev)
-version: 0.7.1+2
-=======
-version: 0.7.2-dev
->>>>>>> ca42aa6 (docs: adjust docs to new version 0.7.2-dev)
+version: 0.7.3
 homepage: https://github.com/anarchuser/mic_stream
 
 environment:
-  sdk: '^3.0.0'
-  flutter: '>=3.13.5'
+  sdk: '^3.7.0'
+  flutter: '>=3.29.0'
 
 module:
   androidX: true
@@ -19,7 +13,7 @@ module:
 dependencies:
   flutter:
     sdk: flutter
-  permission_handler: '^11.0.0'
+  permission_handler: '^11.4.0'
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

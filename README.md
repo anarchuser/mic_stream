@@ -1,4 +1,4 @@
-# mic_stream: 0.7.2
+# mic_stream: 0.7.3
 
 [Flutter Plugin]
 Provides a tool to get the microphone input as 8 or 16 bit PCM Stream.

@@ -3,7 +3,8 @@ description: Demonstrates how to use the mic_stream plugin.
 publish_to: 'none'
 
 environment:
-  sdk: '>=3.0.0 <=3.13.7'
+  sdk: '^3.7.0'
+  flutter: '>=3.29.0'
 
 dependencies:
   flutter:
