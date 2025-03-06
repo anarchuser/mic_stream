@@ -1,4 +1,4 @@
-## 0.7.3
+## 0.7.3-dev
 
 * Removal of v1 Android embedding Java APIs (required by Flutter v3.29) (#100)
 
